@@ -1,0 +1,257 @@
+openapi: 3.0.3
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+  - url: http://localhost:8080
+    description: Generated server url
+paths:
+  /pedidos:
+    get:
+      tags:
+        - listar-pedidos-controller
+      operationId: listar
+      responses:
+        '200':
+          description: Lista de pedidos encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListarPedidosResponseV1'
+        '204':
+          description: Nenhum pedido ativo encontrado
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+    post:
+      tags:
+        - efetuar-pedido-controller
+      operationId: efetuarPedido
+      parameters:
+        - name: transactionId
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EfetuarPedidoRequestV1'
+        required: true
+      responses:
+        '201':
+          description: Pedido criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EfetuarPedidoResponseV1'
+        '400':
+          description: Dados do produto inconsistentes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+        '404':
+          description: Produto não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+        '422':
+          description: Pedido em andamento ou produto não disponível
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+  /pedidos/{pedidoId}:
+    get:
+      tags:
+        - buscar-pedido-controller
+      operationId: buscar
+      parameters:
+        - name: pedidoId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Pedido encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BuscarPedidoResponseV1'
+        '404':
+          description: Pedido não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+  /pedidos/{pedidoId}/cancelamentos:
+    post:
+      tags:
+        - cancelar-pedido-controller
+      operationId: cancelar
+      parameters:
+        - name: pedidoId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelarPedidoRequestV1'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/CancelarPedidoResponseV1'
+        '404':
+          description: Pedido não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+components:
+  schemas:
+    EfetuarPedidoRequestV1:
+      type: object
+      properties:
+        codigoIdentificacaoCliente:
+          type: string
+        produtos:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProdutoRequest'
+      required:
+        - codigoIdentificacaoCliente
+        - produtos
+    ProdutoRequest:
+      type: object
+      properties:
+        idProduto:
+          type: integer
+          format: int64
+        nomeProduto:
+          type: string
+        quantidadeProduto:
+          type: integer
+          format: int32
+          minimum: 1
+        precoUnitario:
+          type: number
+          format: double
+          minimum: 0.01
+      required:
+        - idProduto
+        - nomeProduto
+        - precoUnitario
+    CancelarPedidoResponseV1:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DataCancelamentoResponse'
+    CancelarPedidoRequestV1:
+      type: object
+      properties:
+        motivoCancelamento:
+          type: string
+      required:
+        - motivoCancelamento
+    BuscarPedidoResponseV1:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Pedido'
+    ListarPedidosResponseV1:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Pedido'
+    EfetuarPedidoResponseV1:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DataResponse'
+    DataResponse:
+      type: object
+      properties:
+        mensagem:
+          type: string
+        idPedido:
+          type: integer
+          format: int64
+    DataCancelamentoResponse:
+      type: object
+      properties:
+        mensagem:
+          type: string
+    ErrorResponseV1:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/DataError'
+    DataError:
+      type: object
+      properties:
+        codigo:
+          type: string
+        mensagem:
+          type: string
+    Pedido:
+      type: object
+      properties:
+        pedidoId:
+          type: integer
+          format: int64
+        codigoIdentificacaoCliente:
+          type: string
+        produtos:
+          type: array
+          items:
+            $ref: '#/components/schemas/Produto'
+    Produto:
+      type: object
+      properties:
+        produtoId:
+          type: integer
+          format: int64
+        nomeProduto:
+          type: string
+        quantidadeProduto:
+          type: integer
+          format: int32
+        precoUnitario:
+          type: number
+          format: double

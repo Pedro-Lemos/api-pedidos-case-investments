@@ -1,0 +1,26 @@
+[ {
+  "idProduto" : 1,
+  "nomeProduto" : "Notebook Dell",
+  "quantidadeProduto" : 0,
+  "precoUnitarioProduto" : 2500.0
+}, {
+  "idProduto" : 2,
+  "nomeProduto" : "Mouse Logitech",
+  "quantidadeProduto" : 42,
+  "precoUnitarioProduto" : 75.0
+}, {
+  "idProduto" : 3,
+  "nomeProduto" : "Teclado Mecânico",
+  "quantidadeProduto" : 25,
+  "precoUnitarioProduto" : 350.0
+}, {
+  "idProduto" : 4,
+  "nomeProduto" : "Monitor 24 polegadas",
+  "quantidadeProduto" : 15,
+  "precoUnitarioProduto" : 800.0
+}, {
+  "idProduto" : 5,
+  "nomeProduto" : "Headset Gamer",
+  "quantidadeProduto" : 30,
+  "precoUnitarioProduto" : 200.0
+} ]

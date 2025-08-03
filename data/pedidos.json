@@ -1,0 +1,100 @@
+[ {
+  "idPedido" : 1754229729636,
+  "codigoIdentificacaoCliente" : null,
+  "statusPedido" : "INATIVO",
+  "descricaoProdutos" : [ {
+    "idProduto" : 2,
+    "nomeProduto" : "Mouse Logitech",
+    "quantidadeProduto" : 2,
+    "precoUnitarioProduto" : 75.0
+  } ],
+  "dataHoraCriacaoPedido" : "03-08-2025 11:02:09",
+  "transactionId" : "926189f6-1a5b-4d05-a6d5-3e46c851a2a1",
+  "motivoCancelamento" : "Pedido incorreto",
+  "dataHoraCancelamento" : "03-08-2025 13:05:04"
+}, {
+  "idPedido" : 1754180870703,
+  "codigoIdentificacaoCliente" : "14c01643-760b-4d7c-bcad-828553dbfe3f",
+  "statusPedido" : "INATIVO",
+  "descricaoProdutos" : [ {
+    "idProduto" : 1,
+    "nomeProduto" : "Notebook Dell",
+    "quantidadeProduto" : 2,
+    "precoUnitarioProduto" : 2500.0
+  } ],
+  "dataHoraCriacaoPedido" : "02-08-2025 21:27:49",
+  "transactionId" : "47d55993-d840-48c5-a7f5-d2c652a058cb",
+  "motivoCancelamento" : "Pedido incorreto",
+  "dataHoraCancelamento" : "03-08-2025 13:17:29"
+}, {
+  "idPedido" : 1754181098305,
+  "codigoIdentificacaoCliente" : "b1fc3bed-da52-482a-bb32-2e47e9f653f5",
+  "statusPedido" : "INATIVO",
+  "descricaoProdutos" : [ {
+    "idProduto" : 1,
+    "nomeProduto" : "Notebook Dell",
+    "quantidadeProduto" : 2,
+    "precoUnitarioProduto" : 2500.0
+  }, {
+    "idProduto" : 1,
+    "nomeProduto" : "Mouse Logitech",
+    "quantidadeProduto" : 2,
+    "precoUnitarioProduto" : 75.0
+  } ],
+  "dataHoraCriacaoPedido" : "02-08-2025 21:31:37",
+  "transactionId" : "5a33dfdd-3fdd-4034-b28e-aa006cef7819",
+  "motivoCancelamento" : "Pedido incorreto",
+  "dataHoraCancelamento" : "03-08-2025 13:17:35"
+}, {
+  "idPedido" : 1754229703573,
+  "codigoIdentificacaoCliente" : "34a94ff7-f425-4e77-b5dd-4cff88284024",
+  "statusPedido" : "INATIVO",
+  "descricaoProdutos" : [ {
+    "idProduto" : 1,
+    "nomeProduto" : "Notebook Dell",
+    "quantidadeProduto" : 2,
+    "precoUnitarioProduto" : 2500.0
+  }, {
+    "idProduto" : 2,
+    "nomeProduto" : "Mouse Logitech",
+    "quantidadeProduto" : 2,
+    "precoUnitarioProduto" : 75.0
+  } ],
+  "dataHoraCriacaoPedido" : "03-08-2025 11:01:42",
+  "transactionId" : "496c172d-aa2a-48e9-a7d4-2a0a1cec4649",
+  "motivoCancelamento" : "Pedido incorreto",
+  "dataHoraCancelamento" : "03-08-2025 13:17:41"
+}, {
+  "idPedido" : 1754183832474,
+  "codigoIdentificacaoCliente" : "726b4fbf-566a-4b68-b17e-362bbcd2b965",
+  "statusPedido" : "INATIVO",
+  "descricaoProdutos" : [ {
+    "idProduto" : 1,
+    "nomeProduto" : "Notebook Dell",
+    "quantidadeProduto" : 2,
+    "precoUnitarioProduto" : 2500.0
+  }, {
+    "idProduto" : 2,
+    "nomeProduto" : "Mouse Logitech",
+    "quantidadeProduto" : 2,
+    "precoUnitarioProduto" : 75.0
+  } ],
+  "dataHoraCriacaoPedido" : "02-08-2025 22:17:12",
+  "transactionId" : "88b50a2f-c984-4866-b3d4-1c2ecd1d66f2",
+  "motivoCancelamento" : "Pedido incorreto",
+  "dataHoraCancelamento" : "03-08-2025 13:17:48"
+}, {
+  "idPedido" : 1754239350400,
+  "codigoIdentificacaoCliente" : "8e18a3e1-8bd5-41bd-a95d-fc3fd2ee32ea",
+  "statusPedido" : "ATIVO",
+  "descricaoProdutos" : [ {
+    "idProduto" : 2,
+    "nomeProduto" : "Mouse Logitech",
+    "quantidadeProduto" : 2,
+    "precoUnitarioProduto" : 75.0
+  } ],
+  "dataHoraCriacaoPedido" : "03-08-2025 13:42:29",
+  "transactionId" : "a1f10007-835c-4a14-b065-908e0d687f57",
+  "motivoCancelamento" : null,
+  "dataHoraCancelamento" : null
+} ]
