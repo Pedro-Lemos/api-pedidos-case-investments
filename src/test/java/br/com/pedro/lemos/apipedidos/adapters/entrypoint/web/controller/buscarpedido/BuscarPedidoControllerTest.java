@@ -15,6 +15,8 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.UUID;
+
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -48,6 +50,8 @@ class BuscarPedidoControllerTest {
         reset(buscarPedidoUseCase);
     }
 
+    private final String correlationId = UUID.randomUUID().toString();
+
     @Test
     void deveBuscarPedidoComSucesso() throws Exception {
         
@@ -55,7 +59,9 @@ class BuscarPedidoControllerTest {
         Pedido pedido = new Pedido();
         when(buscarPedidoUseCase.buscar(pedidoId)).thenReturn(pedido);
 
-        mockMvc.perform(get("/pedidos/{pedidoId}", pedidoId))
+        mockMvc.perform(get("/pedidos/{pedidoId}", pedidoId)
+                        .header("correlationId", correlationId)
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").exists());
 
@@ -69,7 +75,9 @@ class BuscarPedidoControllerTest {
         when(buscarPedidoUseCase.buscar(pedidoId))
                 .thenThrow(new PedidoNaoEncontradoException(pedidoId));
 
-        mockMvc.perform(get("/pedidos/{pedidoId}", pedidoId))
+        mockMvc.perform(get("/pedidos/{pedidoId}", pedidoId)
+                        .header("correlationId", correlationId)
+                )
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.data.codigoErro").value("PNE"))
                 .andExpect(jsonPath("$.data.motivoErro").exists());
@@ -84,7 +92,9 @@ class BuscarPedidoControllerTest {
         when(buscarPedidoUseCase.buscar(pedidoId))
                 .thenThrow(new RuntimeException("Erro inesperado"));
 
-        mockMvc.perform(get("/pedidos/{pedidoId}", pedidoId))
+        mockMvc.perform(get("/pedidos/{pedidoId}", pedidoId)
+                        .header("correlationId", correlationId)
+                )
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.data.codigoErro").value("SI"))
                 .andExpect(jsonPath("$.data.motivoErro").value("Serviço indisponível"));
@@ -99,7 +109,9 @@ class BuscarPedidoControllerTest {
         Pedido pedido = new Pedido();
         when(buscarPedidoUseCase.buscar(pedidoId)).thenReturn(pedido);
 
-        mockMvc.perform(get("/pedidos/{pedidoId}", pedidoId))
+        mockMvc.perform(get("/pedidos/{pedidoId}", pedidoId)
+                        .header("correlationId", correlationId)
+                )
                 .andExpect(status().isOk());
 
         verify(buscarPedidoUseCase, times(1)).buscar(pedidoId);

@@ -17,6 +17,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.UUID;
+
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -53,6 +55,8 @@ class CancelarPedidoControllerTest {
         reset(cancelarPedidoUseCase);
     }
 
+    private final String correlationId = UUID.randomUUID().toString();
+
     @Test
     void deveCancelarPedidoComSucesso() throws Exception {
         Long pedidoId = 123L;
@@ -62,6 +66,7 @@ class CancelarPedidoControllerTest {
         doNothing().when(cancelarPedidoUseCase).cancelar(pedidoId, motivoCancelamento);
 
         mockMvc.perform(post("/pedidos/{pedidoId}/cancelamentos", pedidoId)
+                        .header("correlationId", correlationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -80,6 +85,7 @@ class CancelarPedidoControllerTest {
                 .when(cancelarPedidoUseCase).cancelar(pedidoId, motivoCancelamento);
 
         mockMvc.perform(post("/pedidos/{pedidoId}/cancelamentos", pedidoId)
+                        .header("correlationId", correlationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
@@ -99,6 +105,7 @@ class CancelarPedidoControllerTest {
                 .when(cancelarPedidoUseCase).cancelar(pedidoId, motivoCancelamento);
 
         mockMvc.perform(post("/pedidos/{pedidoId}/cancelamentos", pedidoId)
+                        .header("correlationId", correlationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnprocessableEntity())
@@ -118,6 +125,7 @@ class CancelarPedidoControllerTest {
                 .when(cancelarPedidoUseCase).cancelar(pedidoId, motivoCancelamento);
 
         mockMvc.perform(post("/pedidos/{pedidoId}/cancelamentos", pedidoId)
+                        .header("correlationId", correlationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isInternalServerError())
@@ -133,6 +141,7 @@ class CancelarPedidoControllerTest {
         String requestInvalido = "{}";
 
         mockMvc.perform(post("/pedidos/{pedidoId}/cancelamentos", pedidoId)
+                        .header("correlationId", correlationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestInvalido))
                 .andExpect(status().isBadRequest());
@@ -149,6 +158,7 @@ class CancelarPedidoControllerTest {
         doNothing().when(cancelarPedidoUseCase).cancelar(pedidoId, motivoCancelamento);
 
         mockMvc.perform(post("/pedidos/{pedidoId}/cancelamentos", pedidoId)
+                        .header("correlationId", correlationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())

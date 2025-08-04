@@ -8,10 +8,7 @@ import br.com.pedro.lemos.apipedidos.application.usecase.buscarpedidousecase.Bus
 import br.com.pedro.lemos.apipedidos.domain.entity.Pedido;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/pedidos")
@@ -24,7 +21,10 @@ public class BuscarPedidoController {
     }
 
     @GetMapping("/{pedidoId}")
-    public ResponseEntity<?> buscar(@PathVariable Long pedidoId) {
+    public ResponseEntity<?> buscar(
+            @PathVariable Long pedidoId,
+            @RequestHeader("correlationId") String correlationId
+    ) {
         try {
             Pedido pedido = buscarPedidoUseCase.buscar(pedidoId);
 

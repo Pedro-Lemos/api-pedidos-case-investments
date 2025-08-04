@@ -24,6 +24,7 @@ public class CancelarPedidoController {
 
     @PostMapping("/{pedidoId}/cancelamentos")
     public ResponseEntity<?> cancelar(@PathVariable Long pedidoId,
+                                      @RequestHeader("correlationId") String correlationId,
                                       @RequestBody @Valid CancelarPedidoRequestV1 request) {
         try {
             cancelarPedidoUseCase.cancelar(pedidoId, request.getMotivoCancelamento());
