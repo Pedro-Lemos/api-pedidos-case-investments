@@ -14,8 +14,6 @@ Uma API REST para gerenciamento de pedidos, desenvolvida em Java com Spring Boot
 - **Spring Boot 3.x**
 - **Gradle**
 - **JUnit 5** (testes unitários)
-- **Mockito** (mocks para testes)
-- **Jackson** (serialização JSON)
 - **Armazenamento em arquivo JSON** (simulando banco de dados)
 
 ## Como Executar o Projeto
@@ -111,6 +109,17 @@ transactionId: TXN-12345
 }
 ```
 
+**Response (422):**
+```json
+{
+	"data": {
+		"codigoErro": "PND",
+		"motivoErro": "Não foi possível realizar o pedido. Quantidade do produto: Notebook Dell, maior que o disponível em estoque."
+	}
+}
+```
+
+
 **Exemplo com cURL:**
 ```bash
 curl --request POST \
@@ -137,7 +146,7 @@ curl --request POST \
 **Response (200 OK):**
 ```json
 {
-	"pedidos": [
+	"data": [
 		{
 			"idPedido": 1754239350400,
 			"codigoIdentificacaoCliente": "8e18a3e1-8bd5-41bd-a95d-fc3fd2ee32ea",
@@ -187,8 +196,10 @@ curl --request GET \
 **Response (404 Not Found):**
 ```json
 {
-  "codigo": "PNE",
-  "mensagem": "Pedido não encontrado"
+	"data": {
+		"codigoErro": "PNE",
+		"motivoErro": "Pedido com ID 111 não encontrado"
+	}
 }
 ```
 
@@ -209,7 +220,7 @@ curl --request POST \
 **Response (200 OK):**
 ```json
 {
-	"pedido": {
+	"data": {
 		"idPedido": 1754239350400,
 		"codigoIdentificacaoCliente": "8e18a3e1-8bd5-41bd-a95d-fc3fd2ee32ea",
 		"statusPedido": "ATIVO",
