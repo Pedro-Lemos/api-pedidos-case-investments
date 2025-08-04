@@ -16,6 +16,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -50,12 +51,16 @@ class ListarPedidosControllerTest {
         reset(listarPedidosUseCase);
     }
 
+    private final String correlationId =  UUID.randomUUID().toString();
+
     @Test
     void deveListarPedidosComSucesso() throws Exception {
         List<Pedido> pedidos = List.of(new Pedido(), new Pedido());
         when(listarPedidosUseCase.listar()).thenReturn(pedidos);
 
-        mockMvc.perform(get("/pedidos"))
+        mockMvc.perform(get("/pedidos")
+                        .header("correlationId", correlationId)
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").isArray())
                 .andExpect(jsonPath("$.data.length()").value(2));
@@ -67,7 +72,9 @@ class ListarPedidosControllerTest {
     void deveRetornar204QuandoNaoHaPedidosAtivos() throws Exception {
         when(listarPedidosUseCase.listar()).thenThrow(new PedidosInativosException());
 
-        mockMvc.perform(get("/pedidos"))
+        mockMvc.perform(get("/pedidos")
+                        .header("correlationId", correlationId)
+                )
                 .andExpect(status().isNoContent())
                 .andExpect(jsonPath("$.data.codigoErro").value("PIE"))
                 .andExpect(jsonPath("$.data.motivoErro").exists());
@@ -79,7 +86,9 @@ class ListarPedidosControllerTest {
     void deveRetornar500QuandoOcorreErroInesperado() throws Exception {
         when(listarPedidosUseCase.listar()).thenThrow(new RuntimeException("Erro inesperado"));
 
-        mockMvc.perform(get("/pedidos"))
+        mockMvc.perform(get("/pedidos")
+                        .header("correlationId", correlationId)
+                )
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.data.codigoErro").value("SI"))
                 .andExpect(jsonPath("$.data.motivoErro").value("Serviço indisponível"));

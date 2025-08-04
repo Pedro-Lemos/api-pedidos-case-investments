@@ -8,21 +8,19 @@ import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import java.util.UUID;
-
 @Component
 public class LoggingInterceptor implements HandlerInterceptor {
     private static final Logger logger = LoggerFactory.getLogger(LoggingInterceptor.class);
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        String requestId = UUID.randomUUID().toString().substring(0, 8);
-        MDC.put("requestId", requestId);
+        String correlationId = request.getHeader("correlationId");
+        MDC.put("correlationId", correlationId);
         MDC.put("method", request.getMethod());
         MDC.put("uri", request.getRequestURI());
 
-        logger.info("Iniciando requisição - {} {} | Request ID: {}",
-                request.getMethod(), request.getRequestURI(), requestId);
+        logger.info("Iniciando requisição - {} {} | Correlation ID: {}",
+                request.getMethod(), request.getRequestURI(), correlationId);
 
         request.setAttribute("startTime", System.currentTimeMillis());
         return true;

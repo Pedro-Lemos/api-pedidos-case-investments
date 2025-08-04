@@ -9,6 +9,7 @@ import br.com.pedro.lemos.apipedidos.domain.entity.Pedido;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,7 +26,9 @@ public class ListarPedidosController {
     }
 
     @GetMapping
-    public ResponseEntity<?> listar() {
+    public ResponseEntity<?> listar(
+            @RequestHeader("correlationId") String correlationId
+    ) {
         try {
             List<Pedido> pedidos = listarPedidosUseCase.listar();
 
