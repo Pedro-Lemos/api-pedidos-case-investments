@@ -10,4 +10,6 @@ public interface PedidoRepository {
     void salvar(Pedido pedido);
 
     List<Pedido> findByStatus(String status);
+
+    List<Pedido> findAll();
 }

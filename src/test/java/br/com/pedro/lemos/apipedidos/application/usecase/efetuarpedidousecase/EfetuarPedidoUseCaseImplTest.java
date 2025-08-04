@@ -5,6 +5,7 @@ import br.com.pedro.lemos.apipedidos.adapters.dataprovider.repository.ProdutoRep
 import br.com.pedro.lemos.apipedidos.application.exception.PedidoEmAndamentoException;
 import br.com.pedro.lemos.apipedidos.application.exception.ProdutoNaoDisponivelException;
 import br.com.pedro.lemos.apipedidos.application.exception.ProdutoNaoEncontradoException;
+import br.com.pedro.lemos.apipedidos.application.service.GeradorIdPedidoService;
 import br.com.pedro.lemos.apipedidos.application.usecase.efetuarpedidousecase.model.SolicitacaoEfetuarPedido;
 import br.com.pedro.lemos.apipedidos.domain.entity.Pedido;
 import br.com.pedro.lemos.apipedidos.domain.entity.Produto;
@@ -28,32 +29,44 @@ class EfetuarPedidoUseCaseImplTest {
     @Mock
     private PedidoRepository pedidoRepository;
 
+    @Mock
+    private GeradorIdPedidoService geradorIdPedidoService;
+
     @InjectMocks
     private EfetuarPedidoUseCaseImpl efetuarPedidoUseCase;
 
     @Test
     void deveEfetuarPedidoComSucessoQuandoTodosOsProdutosEstaoDisponiveis() {
         SolicitacaoEfetuarPedido solicitacao = criarSolicitacaoEfetuarPedido();
-        Pedido pedido = criarPedido();
         Produto produto = criarProduto();
+        Long idPedidoGerado = 1L;
 
-        when(pedidoRepository.findByIdPedido(solicitacao.getIdPedido())).thenReturn(null);
         when(produtoRepository.findById(produto.getIdProduto())).thenReturn(produto);
         when(produtoRepository.getEstoqueDisponivel(produto.getIdProduto())).thenReturn(10);
+        when(geradorIdPedidoService.gerarId()).thenReturn(idPedidoGerado);
+        when(pedidoRepository.findByIdPedido(idPedidoGerado)).thenReturn(null);
 
-        efetuarPedidoUseCase.efetuar(solicitacao);
+        Long resultado = efetuarPedidoUseCase.efetuar(solicitacao);
 
+        assertEquals(idPedidoGerado, resultado);
         verify(produtoRepository, times(1)).atualizarEstoque(produto.getIdProduto(), produto.getQuantidadeProduto());
         verify(pedidoRepository, times(1)).salvar(any(Pedido.class));
+        verify(geradorIdPedidoService, times(1)).gerarId();
     }
 
     @Test
     void deveLancarExcecaoQuandoPedidoJaEstaEmAndamento() {
         SolicitacaoEfetuarPedido solicitacao = criarSolicitacaoEfetuarPedido();
+        Produto produto = criarProduto();
+        Long idPedidoGerado = 1L;
         Pedido pedidoExistente = criarPedido();
         pedidoExistente.setStatusPedido("ATIVO");
 
-        when(pedidoRepository.findByIdPedido(solicitacao.getIdPedido())).thenReturn(pedidoExistente);
+        // Mock para passar na validação do produto primeiro
+        when(produtoRepository.findById(produto.getIdProduto())).thenReturn(produto);
+        when(produtoRepository.getEstoqueDisponivel(produto.getIdProduto())).thenReturn(10);
+        when(geradorIdPedidoService.gerarId()).thenReturn(idPedidoGerado);
+        when(pedidoRepository.findByIdPedido(idPedidoGerado)).thenReturn(pedidoExistente);
 
         assertThrows(PedidoEmAndamentoException.class, () -> efetuarPedidoUseCase.efetuar(solicitacao));
     }
@@ -63,7 +76,6 @@ class EfetuarPedidoUseCaseImplTest {
         SolicitacaoEfetuarPedido solicitacao = criarSolicitacaoEfetuarPedido();
         Produto produto = criarProduto();
 
-        when(pedidoRepository.findByIdPedido(solicitacao.getIdPedido())).thenReturn(null);
         when(produtoRepository.findById(produto.getIdProduto())).thenReturn(null);
 
         assertThrows(ProdutoNaoEncontradoException.class, () -> efetuarPedidoUseCase.efetuar(solicitacao));
@@ -74,7 +86,6 @@ class EfetuarPedidoUseCaseImplTest {
         SolicitacaoEfetuarPedido solicitacao = criarSolicitacaoEfetuarPedido();
         Produto produto = criarProduto();
 
-        when(pedidoRepository.findByIdPedido(solicitacao.getIdPedido())).thenReturn(null);
         when(produtoRepository.findById(produto.getIdProduto())).thenReturn(produto);
         when(produtoRepository.getEstoqueDisponivel(produto.getIdProduto())).thenReturn(0);
 
@@ -84,15 +95,16 @@ class EfetuarPedidoUseCaseImplTest {
     @Test
     void deveLancarExcecaoGenericaQuandoErroInesperadoAcontece() {
         SolicitacaoEfetuarPedido solicitacao = criarSolicitacaoEfetuarPedido();
+        Produto produto = criarProduto();
 
-        when(pedidoRepository.findByIdPedido(solicitacao.getIdPedido())).thenThrow(new RuntimeException("Erro inesperado"));
+        when(produtoRepository.findById(produto.getIdProduto())).thenThrow(new RuntimeException("Erro inesperado"));
 
         assertThrows(RuntimeException.class, () -> efetuarPedidoUseCase.efetuar(solicitacao));
     }
 
     private SolicitacaoEfetuarPedido criarSolicitacaoEfetuarPedido() {
         Produto produto = criarProduto();
-        return new SolicitacaoEfetuarPedido(1L, "123", List.of(produto), "transacao123");
+        return new SolicitacaoEfetuarPedido("123", List.of(produto), "transacao123");
     }
 
     private Produto criarProduto() {

@@ -203,7 +203,7 @@ class PedidoRepositoryImplTest {
                 id,
                 codigoCliente,
                 produtos,
-                LocalDateTime.now().format(DateUtils.FORMATTER_DATA_HORA),
+                LocalDateTime.now().format(DateUtils.FORMATTER_DATA_HORA_PT_BR),
                 transactionId
         );
         pedido.setStatusPedido(status);

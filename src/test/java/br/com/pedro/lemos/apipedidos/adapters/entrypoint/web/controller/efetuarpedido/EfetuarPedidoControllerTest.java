@@ -19,6 +19,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.UUID;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
@@ -58,14 +60,17 @@ class EfetuarPedidoControllerTest {
         reset(efetuarPedidoUseCase);
     }
 
+    private final String transactionId =  UUID.randomUUID().toString();
+    private final String correlationId =  UUID.randomUUID().toString();
+
     @Test
     void deveEfetuarPedidoComSucesso() throws Exception {
-        
-        String transactionId = "TXN-12345";
+
         EfetuarPedidoRequestV1 request = Mock.criarRequestValido();
 
         mockMvc.perform(post("/pedidos")
                         .header("transactionId", transactionId)
+                        .header("correlationId", correlationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -77,8 +82,7 @@ class EfetuarPedidoControllerTest {
 
     @Test
     void deveRetornar422QuandoPedidoEmAndamento() throws Exception {
-        
-        String transactionId = "TXN-12345";
+
         EfetuarPedidoRequestV1 request = Mock.criarRequestValido();
 
         doThrow(new PedidoEmAndamentoException(123L))
@@ -87,6 +91,7 @@ class EfetuarPedidoControllerTest {
 
         mockMvc.perform(post("/pedidos")
                         .header("transactionId", transactionId)
+                        .header("correlationId", correlationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnprocessableEntity())
@@ -98,8 +103,7 @@ class EfetuarPedidoControllerTest {
 
     @Test
     void deveRetornar422QuandoProdutoNaoDisponivel() throws Exception {
-        
-        String transactionId = "TXN-12345";
+
         EfetuarPedidoRequestV1 request = Mock.criarRequestValido();
 
         doThrow(new ProdutoNaoDisponivelException("Notebook Dell"))
@@ -108,6 +112,7 @@ class EfetuarPedidoControllerTest {
 
         mockMvc.perform(post("/pedidos")
                         .header("transactionId", transactionId)
+                        .header("correlationId", correlationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnprocessableEntity())
@@ -118,8 +123,7 @@ class EfetuarPedidoControllerTest {
 
     @Test
     void deveRetornar404QuandoProdutoNaoEncontrado() throws Exception {
-        
-        String transactionId = "TXN-12345";
+
         EfetuarPedidoRequestV1 request = Mock.criarRequestValido();
 
         doThrow(new ProdutoNaoEncontradoException(999L))
@@ -128,6 +132,7 @@ class EfetuarPedidoControllerTest {
 
         mockMvc.perform(post("/pedidos")
                         .header("transactionId", transactionId)
+                        .header("correlationId", correlationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
@@ -139,8 +144,7 @@ class EfetuarPedidoControllerTest {
 
     @Test
     void deveRetornar500QuandoErroGenerico() throws Exception {
-        
-        String transactionId = "TXN-12345";
+
         EfetuarPedidoRequestV1 request = Mock.criarRequestValido();
 
         doThrow(new RuntimeException("Erro inesperado"))
@@ -149,6 +153,7 @@ class EfetuarPedidoControllerTest {
 
         mockMvc.perform(post("/pedidos")
                         .header("transactionId", transactionId)
+                        .header("correlationId", correlationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isInternalServerError())
@@ -171,30 +176,14 @@ class EfetuarPedidoControllerTest {
         verify(efetuarPedidoUseCase, never()).efetuar(any(SolicitacaoEfetuarPedido.class));
     }
 
-//    @Test
-//    void deveRetornar400QuandoBodyInvalido() throws Exception {
-//        
-//        String transactionId = "TXN-12345";
-//        String requestInvalido = "{\"invalid\": \"json\"}";
-//
-//         & Then
-//        mockMvc.perform(post("/pedidos")
-//                        .header("transactionId", transactionId)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(requestInvalido))
-//                .andExpect(status().isBadRequest());
-//
-//        verify(efetuarPedidoUseCase, never()).efetuar(any(SolicitacaoEfetuarPedido.class));
-//    }
-
     @Test
     void deveProcessarRequestComMultiplosProdutos() throws Exception {
-        
-        String transactionId = "TXN-12345";
+
         EfetuarPedidoRequestV1 request = Mock.criarRequestComMultiplosProdutos();
 
         mockMvc.perform(post("/pedidos")
                         .header("transactionId", transactionId)
+                        .header("correlationId", correlationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -205,13 +194,12 @@ class EfetuarPedidoControllerTest {
 
     @Test
     void deveValidarConteudoDoRequestPassadoParaUseCase() throws Exception {
-        
-        String transactionId = "TXN-12345";
-        EfetuarPedidoRequestV1 request = Mock.criarRequestValido();
 
+        EfetuarPedidoRequestV1 request = Mock.criarRequestValido();
         
         mockMvc.perform(post("/pedidos")
                         .header("transactionId", transactionId)
+                        .header("correlationId", correlationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());

@@ -34,7 +34,7 @@ public class CancelarPedidoUseCaseImpl implements CancelarPedidoUseCase {
         }
 
         // Data/hora preenchida automaticamente pelo sistema
-        String dataHoraAtual = LocalDateTime.now().format(DateUtils.FORMATTER_DATA_HORA);
+        String dataHoraAtual = LocalDateTime.now().format(DateUtils.FORMATTER_DATA_HORA_PT_BR);
 
         pedido.setStatusPedido(StatusPedido.INATIVO.getValor());
         pedido.setMotivoCancelamento(motivoCancelamento);

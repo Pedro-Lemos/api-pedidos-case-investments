@@ -3,5 +3,8 @@ package br.com.pedro.lemos.apipedidos.domain.utils;
 import java.time.format.DateTimeFormatter;
 
 public class DateUtils {
-    public static final DateTimeFormatter FORMATTER_DATA_HORA = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+    public static final DateTimeFormatter FORMATTER_DATA_HORA_PT_BR = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+    public static final DateTimeFormatter FORMATTER_DATA_ID = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+    private DateUtils() {}
 }

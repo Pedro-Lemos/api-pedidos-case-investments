@@ -11,24 +11,17 @@ import br.com.pedro.lemos.apipedidos.application.exception.ProdutoNaoEncontradoE
 import br.com.pedro.lemos.apipedidos.application.usecase.efetuarpedidousecase.EfetuarPedidoUseCase;
 import br.com.pedro.lemos.apipedidos.application.usecase.efetuarpedidousecase.model.SolicitacaoEfetuarPedido;
 import br.com.pedro.lemos.apipedidos.domain.entity.Produto;
+
 import jakarta.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Random;
 
 @RestController
 @RequestMapping("/pedidos")
 public class EfetuarPedidoController {
-    private static final Logger logger = LoggerFactory.getLogger(EfetuarPedidoController.class);
-
     private final EfetuarPedidoUseCase efetuarPedidoUseCase;
 
     public EfetuarPedidoController(EfetuarPedidoUseCase efetuarPedidoUseCase) {
@@ -39,24 +32,23 @@ public class EfetuarPedidoController {
     public ResponseEntity<?> efetuarPedido(
             @Valid
             @RequestHeader("transactionId") String transactionId,
+            @RequestHeader("correlationId") String correlationId,
             @Valid @RequestBody EfetuarPedidoRequestV1 request) {
 
         try {
-            // Gera um ID único para o pedido
-            Long idPedido = gerarIdPedido();
+
 
             List<Produto> produtos = request.getProdutos().stream()
                     .map(EfetuarPedidoRequestV1.ProdutoRequest::toProduto)
                     .toList();
 
             SolicitacaoEfetuarPedido solicitacao = new SolicitacaoEfetuarPedido(
-                    idPedido,
                     request.getCodigoIdentificacaoCliente(),
                     produtos,
                     transactionId
             );
 
-            efetuarPedidoUseCase.efetuar(solicitacao);
+            Long idPedido = efetuarPedidoUseCase.efetuar(solicitacao);
 
             EfetuarPedidoResponseV1.DataResponse data = new EfetuarPedidoResponseV1.DataResponse(
                     "Pedido efetuado com sucesso!",
@@ -118,7 +110,4 @@ public class EfetuarPedidoController {
         }
     }
 
-    private Long gerarIdPedido() {
-        return System.currentTimeMillis() + new Random().nextInt(1000);
-    }
 }

@@ -1,7 +1,6 @@
 package br.com.pedro.lemos.apipedidos.adapters.dataprovider.repository;
 
 import br.com.pedro.lemos.apipedidos.domain.entity.Pedido;
-import br.com.pedro.lemos.apipedidos.domain.entity.Produto;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
@@ -20,8 +19,6 @@ import java.util.List;
 
 @Repository
 public class PedidoRepositoryImpl implements PedidoRepository {
-
-    private static final Logger logger = LoggerFactory.getLogger(PedidoRepositoryImpl.class);
 
     private final ObjectMapper objectMapper;
     private final String filePath;
@@ -71,6 +68,10 @@ public class PedidoRepositoryImpl implements PedidoRepository {
                 .toList();
     }
 
+    @Override
+    public List<Pedido> findAll() {
+        return carregarTodosPedidos();
+    }
 
     private List<Pedido> carregarTodosPedidos() {
         try {
@@ -80,9 +81,7 @@ public class PedidoRepositoryImpl implements PedidoRepository {
                 return new ArrayList<>();
             }
 
-            List<Pedido> pedidos = objectMapper.readValue(file, new TypeReference<List<Pedido>>() {});
-
-            return pedidos;
+            return objectMapper.readValue(file, new TypeReference<List<Pedido>>() {});
 
         } catch (IOException e) {
             return new ArrayList<>();

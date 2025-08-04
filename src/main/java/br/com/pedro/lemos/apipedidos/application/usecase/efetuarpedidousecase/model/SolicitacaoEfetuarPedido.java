@@ -6,20 +6,14 @@ import java.util.List;
 
 public class SolicitacaoEfetuarPedido {
 
-    private Long idPedido;
     private String codigoIdentificacaoCliente;
     private List<Produto> produto;
     private String transactionId;
 
-    public SolicitacaoEfetuarPedido(Long idPedido, String codigoIdentificacaoCliente, List<Produto> produto, String transactionId) {
-        this.idPedido = idPedido;
+    public SolicitacaoEfetuarPedido(String codigoIdentificacaoCliente, List<Produto> produto, String transactionId) {
         this.codigoIdentificacaoCliente = codigoIdentificacaoCliente;
         this.produto = produto;
         this.transactionId = transactionId;
-    }
-
-    public Long getIdPedido() {
-        return idPedido;
     }
 
     public String getCodigoIdentificacaoCliente() {

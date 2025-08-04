@@ -6,6 +6,7 @@ import br.com.pedro.lemos.apipedidos.application.exception.PedidoEmAndamentoExce
 import br.com.pedro.lemos.apipedidos.application.exception.ProdutoNaoDisponivelException;
 import br.com.pedro.lemos.apipedidos.application.exception.ProdutoNaoEncontradoException;
 import br.com.pedro.lemos.apipedidos.application.exception.DadosProdutoInconsistentesException;
+import br.com.pedro.lemos.apipedidos.application.service.GeradorIdPedidoService;
 import br.com.pedro.lemos.apipedidos.application.usecase.efetuarpedidousecase.model.SolicitacaoEfetuarPedido;
 import br.com.pedro.lemos.apipedidos.domain.entity.Pedido;
 import br.com.pedro.lemos.apipedidos.domain.entity.Produto;
@@ -21,19 +22,19 @@ public class EfetuarPedidoUseCaseImpl implements EfetuarPedidoUseCase {
 
     private final ProdutoRepository produtoRepository;
     private final PedidoRepository pedidoRepository;
+    private final GeradorIdPedidoService geradorIdPedidoService;
 
-    public EfetuarPedidoUseCaseImpl(ProdutoRepository produtoRepository, PedidoRepository pedidoRepository) {
+    public EfetuarPedidoUseCaseImpl(ProdutoRepository produtoRepository, PedidoRepository pedidoRepository,
+                                    GeradorIdPedidoService geradorIdPedidoService) {
         this.produtoRepository = produtoRepository;
         this.pedidoRepository = pedidoRepository;
+        this.geradorIdPedidoService = geradorIdPedidoService;
     }
 
     @Override
     @Transactional
-    public void efetuar(SolicitacaoEfetuarPedido solicitacaoEfetuarPedido) {
-        Pedido pedidoExistente = pedidoRepository.findByIdPedido(solicitacaoEfetuarPedido.getIdPedido());
-        if (pedidoExistente != null && pedidoExistente.getStatusPedido().equals("ATIVO")) {
-            throw new PedidoEmAndamentoException(solicitacaoEfetuarPedido.getIdPedido());
-        }
+    public Long efetuar(SolicitacaoEfetuarPedido solicitacaoEfetuarPedido) {
+
 
         List<Produto> produtoPedido = solicitacaoEfetuarPedido.getProduto();
         for (Produto produto : produtoPedido) {
@@ -42,6 +43,7 @@ public class EfetuarPedidoUseCaseImpl implements EfetuarPedidoUseCase {
                 throw new ProdutoNaoEncontradoException(produto.getIdProduto());
             }
 
+            // Valida preco, nome e quantidade do produto
             validarConsistenciaProduto(produto, produtoCadastrado);
 
             int estoqueDisponivel = produtoRepository.getEstoqueDisponivel(produto.getIdProduto());
@@ -51,9 +53,17 @@ public class EfetuarPedidoUseCaseImpl implements EfetuarPedidoUseCase {
             }
         }
 
-        String dataHoraAtual = LocalDateTime.now().format(DateUtils.FORMATTER_DATA_HORA);
+        // Gera o id do Pedido
+        Long idPedido = geradorIdPedidoService.gerarId();
+
+        Pedido pedidoExistente = pedidoRepository.findByIdPedido(idPedido);
+        if (pedidoExistente != null && pedidoExistente.getStatusPedido().equals("ATIVO")) {
+            throw new PedidoEmAndamentoException(idPedido);
+        }
+
+        String dataHoraAtual = LocalDateTime.now().format(DateUtils.FORMATTER_DATA_HORA_PT_BR);
         Pedido pedido = new Pedido(
-                solicitacaoEfetuarPedido.getIdPedido(),
+                idPedido,
                 solicitacaoEfetuarPedido.getCodigoIdentificacaoCliente(),
                 solicitacaoEfetuarPedido.getProduto(),
                 dataHoraAtual,
@@ -65,6 +75,7 @@ public class EfetuarPedidoUseCaseImpl implements EfetuarPedidoUseCase {
         }
 
         pedidoRepository.salvar(pedido);
+        return idPedido;
     }
 
     private void validarConsistenciaProduto(Produto produtoSolicitado, Produto produtoCadastrado) {
