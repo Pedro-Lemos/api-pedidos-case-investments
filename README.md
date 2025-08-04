@@ -5,7 +5,6 @@ Uma API REST para gerenciamento de pedidos, desenvolvida em Java com Spring Boot
 ## Funcionalidades
 
 - ✅ Efetuar pedidos
-- ✅ Buscar pedido por ID
 - ✅ Listar pedidos ativos
 - ✅ Cancelar pedidos
 
