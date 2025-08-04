@@ -16,6 +16,29 @@ Uma API REST para gerenciamento de pedidos, desenvolvida em Java com Spring Boot
 - **JUnit 5** (testes unitários)
 - **Armazenamento em arquivo JSON** (simulando banco de dados)
 
+## Informações do negócio
+
+Para efetuar um pedido é necessário informar:
+- Um `codigoIdentificacaoCliente`.
+- E um `Produto` ou uma lista de `Produtos` validos.
+
+Para listar pedidos ativos, é necessário informar:
+- Um `pedidoId`.
+
+Para cancelar um pedido, é necessário:
+- Um `pedidoId` válido.
+- Que o pedido esteja ativo.
+- Um `motivoCancelamento`.
+
+
+### PedidoId
+
+O `pedidoId` é gerado automaticamente após a efetuação de um novo pedido.
+Ele sempre seguirá o padrão `ANO + MES + DIA + SEQUENCIAL`
+
+Exemplo: `2025080400001`
+
+
 ## Como Executar o Projeto
 
 ### Pré-requisitos
@@ -37,7 +60,7 @@ Uma API REST para gerenciamento de pedidos, desenvolvida em Java com Spring Boot
 
 2. **Compile o projeto:**
    ```bash
-   ./gradlew build
+   ./gradlew clean build
    ```
 
 3. **Execute os testes:**
@@ -52,13 +75,6 @@ Uma API REST para gerenciamento de pedidos, desenvolvida em Java com Spring Boot
 
 5. **A API estará disponível em:** `http://localhost:8080`
 
-### Executando com JAR
-
-```bash
-./gradlew bootJar
-java -jar build/libs/apipedidos-0.0.1-SNAPSHOT.jar
-```
-
 ## Documentação da API + Collections
 
 ### Base URL
@@ -70,18 +86,19 @@ http://localhost:8080
 
 #### 1. Efetuar Pedido
 - **POST** `/pedidos`
-- **Descrição:** Cria um novo pedido
+- **Descrição:** Efetua um novo pedido
 
 **Headers:**
 ```
 Content-Type: application/json
-transactionId: TXN-12345
+transactionId: randomUUID
+correlationId: randomUUID
 ```
 
 **Request Body:**
 ```json
 {
-  "codigoIdentificacaoCliente": "CLI-001",
+  "codigoIdentificacaoCliente": "2cb91ec4-6031-45f1-b668-07af6440f5d9",
   "produtos": [
     {
       "idProduto": 1,
@@ -112,10 +129,10 @@ transactionId: TXN-12345
 **Response (422):**
 ```json
 {
-	"data": {
-		"codigoErro": "PND",
-		"motivoErro": "Não foi possível realizar o pedido. Quantidade do produto: Notebook Dell, maior que o disponível em estoque."
-	}
+  "data": {
+    "codigoErro": "PND",
+    "motivoErro": "Não foi possível realizar o pedido. Quantidade do produto: Notebook Dell, maior que o disponível em estoque."
+  }
 }
 ```
 
@@ -125,17 +142,18 @@ transactionId: TXN-12345
 curl --request POST \
   --url http://localhost:8080/pedidos \
   --header 'Content-Type: application/json' \
-  --header 'transactionId: 61f7b74a-06a5-465c-a76f-41b94271c687' \
+  --header 'correlationId: abe6018e-0e8f-44b0-89b9-2cd4d4975c0f' \
+  --header 'transactionId: cb49ea66-d374-4219-97a9-e562fb09dab1' \
   --data '{
-  "codigoIdentificacaoCliente": "7e1d3012-44cf-48f6-b037-82bcee5ca010",
-  "produtos": [
+	"codigoIdentificacaoCliente": "0ca5cc8d-20f8-4797-a64c-b24d6588beff",
+	"produtos": [
 		{
-      "idProduto": 2,
-      "nomeProduto": "Mouse Logitech",
-      "quantidadeProduto": 2,
-      "precoUnitario": 75.00
+			"idProduto": 2,
+			"nomeProduto": "Mouse Logitech",
+			"quantidadeProduto": 1,
+			"precoUnitario": 75.00
 		}
-  ]
+	]
 }'
 ```
 
@@ -146,23 +164,23 @@ curl --request POST \
 **Response (200 OK):**
 ```json
 {
-	"data": [
-		{
-			"idPedido": 1754239350400,
-			"codigoIdentificacaoCliente": "8e18a3e1-8bd5-41bd-a95d-fc3fd2ee32ea",
-			"statusPedido": "ATIVO",
-			"descricaoProdutos": [
-				{
-					"idProduto": 2,
-					"nomeProduto": "Mouse Logitech",
-					"quantidadeProduto": 2,
-					"precoUnitarioProduto": 75.0
-				}
-			],
-			"dataHoraCriacaoPedido": "03-08-2025 13:42:29",
-			"transactionId": "a1f10007-835c-4a14-b065-908e0d687f57"
-		}
-	]
+   "data":[
+      {
+         "idPedido":1754239350400,
+         "codigoIdentificacaoCliente":"8e18a3e1-8bd5-41bd-a95d-fc3fd2ee32ea",
+         "statusPedido":"ATIVO",
+         "descricaoProdutos":[
+            {
+               "idProduto":2,
+               "nomeProduto":"Mouse Logitech",
+               "quantidadeProduto":2,
+               "precoUnitarioProduto":75.0
+            }
+         ],
+         "dataHoraCriacaoPedido":"03-08-2025 13:42:29",
+         "transactionId":"a1f10007-835c-4a14-b065-908e0d687f57"
+      }
+   ]
 }
 ```
 
@@ -170,7 +188,8 @@ curl --request POST \
 **Exemplo com cURL:**
 ```bash
 curl --request GET \
-  --url http://localhost:8080/pedidos
+  --url http://localhost:8080/pedidos \
+  --header 'correlationId: 01aa043f-b3d3-492f-bb29-8dc2cdf6059a'
 ```
 
 #### 3. Cancelar Pedido
@@ -196,20 +215,21 @@ curl --request GET \
 **Response (404 Not Found):**
 ```json
 {
-	"data": {
-		"codigoErro": "PNE",
-		"motivoErro": "Pedido com ID 111 não encontrado"
-	}
+   "data":{
+      "codigoErro":"PNE",
+      "motivoErro":"Pedido com ID 111 não encontrado"
+   }
 }
 ```
 
 **Exemplo com cURL:**
 ```bash
 curl --request POST \
-  --url http://localhost:8080/pedidos/1754183832474/cancelamentos \
+  --url http://localhost:8080/pedidos/1754239350400/cancelamentos \
   --header 'Content-Type: application/json' \
+  --header 'correlationId: 582cf491-a51f-4464-a42d-a73a234e8feb' \
   --data '{
-  "motivoCancelamento": "Pedido incorreto"
+	"motivoCancelamento": "Pedido incorreto"
 }'
 ```
 
@@ -220,38 +240,39 @@ curl --request POST \
 **Response (200 OK):**
 ```json
 {
-	"data": {
-		"idPedido": 1754239350400,
-		"codigoIdentificacaoCliente": "8e18a3e1-8bd5-41bd-a95d-fc3fd2ee32ea",
-		"statusPedido": "ATIVO",
-		"descricaoProdutos": [
-			{
-				"idProduto": 2,
-				"nomeProduto": "Mouse Logitech",
-				"quantidadeProduto": 2,
-				"precoUnitarioProduto": 75.0
-			}
-		],
-		"dataHoraCriacaoPedido": "03-08-2025 13:42:29",
-		"transactionId": "a1f10007-835c-4a14-b065-908e0d687f57"
-	}
+   "data":{
+      "idPedido":2025080400003,
+      "codigoIdentificacaoCliente":"8e18a3e1-8bd5-41bd-a95d-fc3fd2ee32ea",
+      "statusPedido":"ATIVO",
+      "descricaoProdutos":[
+         {
+            "idProduto":2,
+            "nomeProduto":"Mouse Logitech",
+            "quantidadeProduto":2,
+            "precoUnitarioProduto":75.0
+         }
+      ],
+      "dataHoraCriacaoPedido":"03-08-2025 13:42:29",
+      "transactionId":"a1f10007-835c-4a14-b065-908e0d687f57"
+   }
 }
 ```
 
 **Response (404 Not Found):**
 ```json
 {
-	"data": {
-		"codigoErro": "PNE",
-		"motivoErro": "Pedido com ID 111 não encontrado"
-	}
+   "data":{
+      "codigoErro":"PNE",
+      "motivoErro":"Pedido com ID 111 não encontrado"
+   }
 }
 ```
 
 **Exemplo com cURL:**
 ```bash
 curl --request GET \
-  --url http://localhost:8080/pedidos/1754239350400
+  --url http://localhost:8080/pedidos/2025080400003 \
+  --header 'correlationId: 989d1ae6-e3bd-44e7-81a4-355e72d5b261'
 ```
 
 ## Arquitetura
@@ -259,21 +280,23 @@ curl --request GET \
 O projeto segue os princípios de **Screaming Architecture** com a seguinte estrutura:
 
 ```
+/
+└── data/
+    ├── pedidos.json                # Arquivo de dados dos pedidos
+    └── produtos.json               # Arquivo de dados dos produtos
 src/main/java/
 ├── adapters/
 │   ├── dataprovider/repository/     # Repositórios e implementações
 │   └── entrypoint/web/             # Controllers e DTOs
 ├── application/
-│   ├── exception/                  # Exceções de negócio
+│   ├── exception/                  # Exceções personalizadas para a aplicação
+│   └── service/                   # Services
 │   └── usecase/                   # Casos de uso
 └── domain/
     └── entity/                    # Entidades de domínio
-
+    └── utils/                    # Utils de domínio do projeto
 src/main/resources/
 ├── application.properties          # Configurações
-└── data/
-    ├── pedidos.json                # Arquivo de dados dos pedidos
-    └── produtos.json               # Arquivo de dados dos produtos
 ```
 
 ## Executando Testes
@@ -360,9 +383,9 @@ A aplicação possui um sistema de logging estruturado que registra todas as ope
 
 ### Interceptador de Requisições
 - **LoggingInterceptor**: Intercepta todas as requisições para `/pedidos/**`
-- Gera um `requestId` único para cada requisição
-- Registra início, fim e duração das requisições
-- Adiciona contexto ao MDC (Mapped Diagnostic Context) do SLF4J
+- Captura o `correlationId` informado no header e registra na composição do log;
+- Registra início, fim e duração das requisições;
+- Adiciona contexto ao MDC (Mapped Diagnostic Context) do SLF4J.
 
 
 ## Configurações
