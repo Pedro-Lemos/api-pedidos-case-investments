@@ -57,7 +57,7 @@ class BuscarPedidoControllerTest {
 
         mockMvc.perform(get("/pedidos/{pedidoId}", pedidoId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.pedido").exists());
+                .andExpect(jsonPath("$.data").exists());
 
         verify(buscarPedidoUseCase, times(1)).buscar(pedidoId);
     }

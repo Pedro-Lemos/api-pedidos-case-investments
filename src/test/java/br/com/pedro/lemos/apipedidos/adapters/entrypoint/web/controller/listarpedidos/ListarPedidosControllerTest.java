@@ -57,8 +57,8 @@ class ListarPedidosControllerTest {
 
         mockMvc.perform(get("/pedidos"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.pedidos").isArray())
-                .andExpect(jsonPath("$.pedidos.length()").value(2));
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data.length()").value(2));
 
         verify(listarPedidosUseCase, times(1)).listar();
     }
