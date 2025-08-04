@@ -114,94 +114,58 @@ transactionId: TXN-12345
 
 **Exemplo com cURL:**
 ```bash
-curl -X POST http://localhost:8080/pedidos \
-  -H "Content-Type: application/json" \
-  -H "transactionId: TXN-12345" \
-  -d '{
-    "codigoIdentificacaoCliente": "CLI-001",
-    "produtos": [
-      {
-        "idProduto": 1,
-        "nomeProduto": "Notebook Dell",
-        "quantidadeProduto": 1,
-        "precoUnitario": 2500.00
-      }
-    ]
-  }'
-```
-
-#### 2. Buscar Pedido por ID
-- **GET** `/pedidos/{pedidoId}`
-- **Descrição:** Retorna um pedido específico pelo ID
-
-**Response (200 OK):**
-```json
-{
-  "pedido": {
-    "idPedido": 1640995200123,
-    "codigoIdentificacaoCliente": "CLI-001",
-    "statusPedido": "ATIVO",
-    "descricaoProdutos": [
-      {
-        "idProduto": 1,
-        "nomeProduto": "Notebook Dell",
-        "quantidadeProduto": 1,
-        "precoUnitario": 2500.00
-      }
-    ],
-    "dataHoraCriacaoPedido": "2023-12-01T10:30:00",
-    "transactionId": "TXN-12345"
-  }
-}
-```
-
-**Response (404 Not Found):**
-```json
-{
-  "codigo": "PNE",
-  "mensagem": "Pedido não encontrado"
-}
-```
-
-**Exemplo com cURL:**
-```bash
-curl -X GET http://localhost:8080/pedidos/1640995200123
-```
-
-#### 3. Listar Pedidos Ativos
-- **GET** `/pedidos`
-- **Descrição:** Retorna todos os pedidos com status ATIVO
-
-**Response (200 OK):**
-```json
-{
-  "pedidos": [
-    {
-      "idPedido": 1640995200123,
-      "codigoIdentificacaoCliente": "CLI-001",
-      "statusPedido": "ATIVO",
-      "descricaoProdutos": [
-        {
-          "idProduto": 1,
-          "nomeProduto": "Notebook Dell",
-          "quantidadeProduto": 1,
-          "precoUnitario": 2500.00
-        }
-      ],
-      "dataHoraCriacaoPedido": "2023-12-01T10:30:00",
-      "transactionId": "TXN-12345"
-    }
+curl --request POST \
+  --url http://localhost:8080/pedidos \
+  --header 'Content-Type: application/json' \
+  --header 'transactionId: 61f7b74a-06a5-465c-a76f-41b94271c687' \
+  --data '{
+  "codigoIdentificacaoCliente": "7e1d3012-44cf-48f6-b037-82bcee5ca010",
+  "produtos": [
+		{
+      "idProduto": 2,
+      "nomeProduto": "Mouse Logitech",
+      "quantidadeProduto": 2,
+      "precoUnitario": 75.00
+		}
   ]
+}'
+```
+
+#### 2. Listar Pedidos Ativos
+- **GET** `/pedidos`
+- **Descrição:** Retorna lista de pedidos com status ATIVO
+
+**Response (200 OK):**
+```json
+{
+	"pedidos": [
+		{
+			"idPedido": 1754239350400,
+			"codigoIdentificacaoCliente": "8e18a3e1-8bd5-41bd-a95d-fc3fd2ee32ea",
+			"statusPedido": "ATIVO",
+			"descricaoProdutos": [
+				{
+					"idProduto": 2,
+					"nomeProduto": "Mouse Logitech",
+					"quantidadeProduto": 2,
+					"precoUnitarioProduto": 75.0
+				}
+			],
+			"dataHoraCriacaoPedido": "03-08-2025 13:42:29",
+			"transactionId": "a1f10007-835c-4a14-b065-908e0d687f57"
+		}
+	]
 }
 ```
 
 
 **Exemplo com cURL:**
 ```bash
-curl -X GET http://localhost:8080/pedidos
+curl --request GET \
+  --url http://localhost:8080/pedidos
 ```
 
-#### 4. Cancelar Pedido
+#### 3. Cancelar Pedido
 - **POST** `/pedidos/{pedidoId}/cancelamentos`
 - **Descrição:** Cancela um pedido específico
 
@@ -231,11 +195,53 @@ curl -X GET http://localhost:8080/pedidos
 
 **Exemplo com cURL:**
 ```bash
-curl -X POST http://localhost:8080/pedidos/1640995200123/cancelamentos \
-  -H "Content-Type: application/json" \
-  -d '{
-    "motivoCancelamento": "Cliente desistiu da compra"
-  }'
+curl --request POST \
+  --url http://localhost:8080/pedidos/1754183832474/cancelamentos \
+  --header 'Content-Type: application/json' \
+  --data '{
+  "motivoCancelamento": "Pedido incorreto"
+}'
+```
+
+#### 4. Buscar Pedido por ID
+- **GET** `/pedidos/{pedidoId}`
+- **Descrição:** Retorna um pedido específico pelo ID
+
+**Response (200 OK):**
+```json
+{
+	"pedido": {
+		"idPedido": 1754239350400,
+		"codigoIdentificacaoCliente": "8e18a3e1-8bd5-41bd-a95d-fc3fd2ee32ea",
+		"statusPedido": "ATIVO",
+		"descricaoProdutos": [
+			{
+				"idProduto": 2,
+				"nomeProduto": "Mouse Logitech",
+				"quantidadeProduto": 2,
+				"precoUnitarioProduto": 75.0
+			}
+		],
+		"dataHoraCriacaoPedido": "03-08-2025 13:42:29",
+		"transactionId": "a1f10007-835c-4a14-b065-908e0d687f57"
+	}
+}
+```
+
+**Response (404 Not Found):**
+```json
+{
+	"data": {
+		"codigoErro": "PNE",
+		"motivoErro": "Pedido com ID 111 não encontrado"
+	}
+}
+```
+
+**Exemplo com cURL:**
+```bash
+curl --request GET \
+  --url http://localhost:8080/pedidos/1754239350400
 ```
 
 ## Arquitetura
