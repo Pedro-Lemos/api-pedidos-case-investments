@@ -163,6 +163,13 @@ curl --request POST \
 - **GET** `/pedidos`
 - **Descrição:** Retorna lista de pedidos com status ATIVO
 
+**Headers:**
+```
+Content-Type: application/json
+correlationId: UUID
+```
+
+
 **Response (200 OK):**
 ```json
 {
@@ -197,6 +204,14 @@ curl --request GET \
 #### 3. Cancelar Pedido
 - **POST** `/pedidos/{pedidoId}/cancelamentos`
 - **Descrição:** Cancela um pedido específico
+
+**Headers:**
+```
+Content-Type: application/json
+transactionId: UUID
+correlationId: UUID
+```
+
 
 **Request Body:**
 ```json
