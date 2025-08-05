@@ -17,6 +17,7 @@ Desenvolvido por mim mesmo. :)
 - **Gradle 8.x**
 - **JUnit 5** (testes unitários)
 - **Armazenamento em arquivo JSON** (simulando banco de dados)
+- **Insomnia** (para requisições)
 
 ## Informações do negócio
 
