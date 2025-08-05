@@ -93,8 +93,8 @@ http://localhost:8080
 **Headers:**
 ```
 Content-Type: application/json
-transactionId: randomUUID
-correlationId: randomUUID
+transactionId: UUID
+correlationId: UUID
 ```
 
 **Request Body:**
