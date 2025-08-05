@@ -165,7 +165,6 @@ curl --request POST \
 
 **Headers:**
 ```
-Content-Type: application/json
 correlationId: UUID
 ```
 
