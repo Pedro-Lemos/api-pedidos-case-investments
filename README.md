@@ -14,7 +14,7 @@ Desenvolvido por mim mesmo. :)
 
 - **Java 17**
 - **Spring Boot 3.x**
-- **Gradle**
+- **Gradle 8.x**
 - **JUnit 5** (testes unitários)
 - **Armazenamento em arquivo JSON** (simulando banco de dados)
 
@@ -46,7 +46,7 @@ Exemplo: `2025080400001`
 ### Pré-requisitos
 
 - Java 17 ou superior
-- Gradle
+- Gradle 8.x
 
 ### Swagger
 
