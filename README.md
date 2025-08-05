@@ -2,6 +2,8 @@
 
 Uma API REST para gerenciamento de pedidos, desenvolvida em Java com Spring Boot seguindo os princípios de Clean Architecture.
 
+Desenvolvido por mim mesmo. :)
+
 ## Funcionalidades
 
 - ✅ Efetuar pedidos
@@ -422,6 +424,4 @@ Formato padrão de erro:
 }
 ```
 
-## 📄 Licença
-
-Este projeto está sob a licença MIT.
+	
