@@ -7,6 +7,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.io.File;
 import java.io.IOException;
@@ -74,10 +77,11 @@ class PedidoRepositoryImplTest {
         );
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(testFile, pedidos);
 
-        List<Pedido> pedidosAtivos = repository.findByStatus("ATIVO");
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Pedido> pedidosAtivosPage = repository.findByStatus("ATIVO", pageable);
 
-        assertEquals(2, pedidosAtivos.size());
-        assertTrue(pedidosAtivos.stream().allMatch(p -> p.getStatusPedido().equals("ATIVO")));
+        assertEquals(2, pedidosAtivosPage.getTotalElements());
+        assertTrue(pedidosAtivosPage.getContent().stream().allMatch(p -> p.getStatusPedido().equals("ATIVO")));
     }
 
     @Test

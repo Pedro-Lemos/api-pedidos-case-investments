@@ -21,7 +21,7 @@ class CancelarPedidoUseCaseImplTest {
         String motivoCancelamento = "Pedido incorreto";
         Pedido pedido = new Pedido();
         pedido.setIdPedido(pedidoId);
-        pedido.setStatusPedido(StatusPedido.ATIVO.getValor());
+        pedido.setStatusPedido(String.valueOf(StatusPedido.ATIVO));
 
         when(pedidoRepository.findByIdPedido(pedidoId)).thenReturn(pedido);
 
@@ -49,10 +49,10 @@ class CancelarPedidoUseCaseImplTest {
     @Test
     void deveLancarExcecaoQuandoPedidoJaCancelado() {
         Long pedidoId = 456L;
-        String motivoCancelamento = "Pedido incorreto";
+        String motivoCancelamento = "Cliente desistiu";
         Pedido pedido = new Pedido();
         pedido.setIdPedido(pedidoId);
-        pedido.setStatusPedido(StatusPedido.INATIVO.getValor());
+        pedido.setStatusPedido(String.valueOf(StatusPedido.INATIVO));
 
         when(pedidoRepository.findByIdPedido(pedidoId)).thenReturn(pedido);
 
@@ -70,14 +70,14 @@ class CancelarPedidoUseCaseImplTest {
         String motivoCancelamento = "Cliente desistiu";
         Pedido pedido = new Pedido();
         pedido.setIdPedido(pedidoId);
-        pedido.setStatusPedido(StatusPedido.ATIVO.getValor());
+        pedido.setStatusPedido(String.valueOf(StatusPedido.ATIVO));
 
         when(pedidoRepository.findByIdPedido(pedidoId)).thenReturn(pedido);
 
         cancelarPedidoUseCase.cancelar(pedidoId, motivoCancelamento);
 
         verify(pedidoRepository).salvar(argThat(pedidoSalvo ->
-                StatusPedido.INATIVO.getValor().equals(pedidoSalvo.getStatusPedido()) &&
+                String.valueOf(StatusPedido.INATIVO).equals(pedidoSalvo.getStatusPedido()) &&
                         motivoCancelamento.equals(pedidoSalvo.getMotivoCancelamento()) &&
                         pedidoSalvo.getDataHoraCancelamento() != null
         ));

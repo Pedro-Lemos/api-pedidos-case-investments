@@ -29,14 +29,14 @@ public class CancelarPedidoUseCaseImpl implements CancelarPedidoUseCase {
             throw new PedidoNaoEncontradoException(pedidoId);
         }
 
-        if (StatusPedido.INATIVO.getValor().equals(pedido.getStatusPedido())) {
+        if (String.valueOf(StatusPedido.INATIVO).equals(pedido.getStatusPedido())) {
             throw new PedidoCanceladoException(pedidoId);
         }
 
         // Data/hora preenchida automaticamente pelo sistema
         String dataHoraAtual = LocalDateTime.now().format(DateUtils.FORMATTER_DATA_HORA_PT_BR);
 
-        pedido.setStatusPedido(StatusPedido.INATIVO.getValor());
+        pedido.setStatusPedido(String.valueOf(StatusPedido.INATIVO));
         pedido.setMotivoCancelamento(motivoCancelamento);
         pedido.setDataHoraCancelamento(dataHoraAtual);
 

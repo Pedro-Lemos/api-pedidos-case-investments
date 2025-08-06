@@ -32,7 +32,7 @@
   "1754229729637" : {
     "idPedido" : 1754229729637,
     "codigoIdentificacaoCliente" : "a8dca7e3-1b55-4c28-adfa-f19cfe89d689",
-    "statusPedido" : "ATIVO",
+    "statusPedido" : "INATIVO",
     "descricaoProdutos" : [ {
       "idProduto" : 2,
       "nomeProduto" : "Mouse Logitech",
@@ -41,13 +41,13 @@
     } ],
     "dataHoraCriacaoPedido" : "06-08-2025 14:13:08",
     "transactionId" : "cb49ea66-d374-4219-97a9-e562fb09dab1",
-    "motivoCancelamento" : null,
-    "dataHoraCancelamento" : null
+    "motivoCancelamento" : "Teste",
+    "dataHoraCancelamento" : "06-08-2025 14:40:39"
   },
   "1754229729638" : {
     "idPedido" : 1754229729638,
     "codigoIdentificacaoCliente" : "c111dccb-bccf-491f-87f3-51f233c14702",
-    "statusPedido" : "ATIVO",
+    "statusPedido" : "INATIVO",
     "descricaoProdutos" : [ {
       "idProduto" : 2,
       "nomeProduto" : "Mouse Logitech",
@@ -55,6 +55,21 @@
       "precoUnitarioProduto" : 75.0
     } ],
     "dataHoraCriacaoPedido" : "06-08-2025 14:13:12",
+    "transactionId" : "cb49ea66-d374-4219-97a9-e562fb09dab1",
+    "motivoCancelamento" : "Teste",
+    "dataHoraCancelamento" : "06-08-2025 14:52:54"
+  },
+  "1754229729639" : {
+    "idPedido" : 1754229729639,
+    "codigoIdentificacaoCliente" : "bbcbb1c4-1926-4149-a3ac-e676ec3ebd62",
+    "statusPedido" : "ATIVO",
+    "descricaoProdutos" : [ {
+      "idProduto" : 2,
+      "nomeProduto" : "Mouse Logitech",
+      "quantidadeProduto" : 1,
+      "precoUnitarioProduto" : 75.0
+    } ],
+    "dataHoraCriacaoPedido" : "06-08-2025 14:53:03",
     "transactionId" : "cb49ea66-d374-4219-97a9-e562fb09dab1",
     "motivoCancelamento" : null,
     "dataHoraCancelamento" : null

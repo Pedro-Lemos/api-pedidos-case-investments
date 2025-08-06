@@ -1,19 +1,20 @@
 package br.com.pedro.lemos.apipedidos.application.usecase.listarpedidosusecase;
 
 import br.com.pedro.lemos.apipedidos.adapters.dataprovider.repository.PedidoRepository;
-import br.com.pedro.lemos.apipedidos.application.exception.PedidosInativosException;
 import br.com.pedro.lemos.apipedidos.domain.entity.Pedido;
 import br.com.pedro.lemos.apipedidos.domain.entity.StatusPedido;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class ListarPedidosUseCaseImplTest {
 
@@ -21,23 +22,29 @@ class ListarPedidosUseCaseImplTest {
     private final ListarPedidosUseCaseImpl listarPedidosUseCase = new ListarPedidosUseCaseImpl(pedidoRepository);
 
     @Test
-    void retornaListaDePedidosAtivosQuandoExistemPedidosAtivos() {
+    void retornaPaginaDePedidosAtivosQuandoExistemPedidosAtivos() {
+        Pageable pageable = PageRequest.of(0, 10);
         List<Pedido> pedidosAtivos = List.of(new Pedido(), new Pedido());
-        when(pedidoRepository.findByStatus(StatusPedido.ATIVO.getValor())).thenReturn(pedidosAtivos);
+        Page<Pedido> pageDePedidos = new PageImpl<>(pedidosAtivos, pageable, pedidosAtivos.size());
 
-        List<Pedido> resultado = listarPedidosUseCase.listar();
+        when(pedidoRepository.findByStatus(String.valueOf(StatusPedido.ATIVO), pageable)).thenReturn(pageDePedidos);
 
-        assertEquals(pedidosAtivos, resultado);
-        verify(pedidoRepository, times(1)).findByStatus(StatusPedido.ATIVO.getValor());
+        Page<Pedido> resultado = listarPedidosUseCase.listar(pageable);
+
+        assertEquals(pageDePedidos, resultado);
+        verify(pedidoRepository, times(1)).findByStatus(String.valueOf(StatusPedido.ATIVO), pageable);
     }
 
     @Test
-    void lancaPedidosInativosExceptionQuandoNaoExistemPedidosAtivos() {
-        when(pedidoRepository.findByStatus(StatusPedido.ATIVO.getValor())).thenReturn(Collections.emptyList());
+    void retornaPaginaVaziaQuandoNaoExistemPedidosAtivos() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Pedido> pageVazia = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
-        assertThrows(PedidosInativosException.class, listarPedidosUseCase::listar);
-        verify(pedidoRepository, times(1)).findByStatus(StatusPedido.ATIVO.getValor());
+        when(pedidoRepository.findByStatus(String.valueOf(StatusPedido.ATIVO), pageable)).thenReturn(pageVazia);
+
+        Page<Pedido> resultado = listarPedidosUseCase.listar(pageable);
+
+        assertTrue(resultado.isEmpty());
+        verify(pedidoRepository, times(1)).findByStatus(String.valueOf(StatusPedido.ATIVO), pageable);
     }
-
-
 }

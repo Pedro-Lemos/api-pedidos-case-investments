@@ -19,7 +19,7 @@ public class Pedido {
     public Pedido(Long idPedido, String codigoIdentificacaoCliente, List<Produto> descricaoProdutos, String dataHoraCriacaoPedido, String transactionId) {
         this.idPedido = idPedido;
         this.codigoIdentificacaoCliente = codigoIdentificacaoCliente;
-        this.statusPedido = StatusPedido.ATIVO.getValor();
+        this.statusPedido = String.valueOf(StatusPedido.ATIVO);
         this.descricaoProdutos = descricaoProdutos;
         this.dataHoraCriacaoPedido = dataHoraCriacaoPedido;
         this.transactionId = transactionId;

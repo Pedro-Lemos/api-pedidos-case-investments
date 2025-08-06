@@ -155,27 +155,63 @@ curl --request POST \
 correlationId: UUID
 ```
 
+**Parâmetros de Paginação**
+
+A API suporta paginação através dos seguintes parâmetros de consulta:
+
+| Parâmetro | Tipo    | Obrigatório | Padrão | Descrição                               |
+|-----------|---------|-------------|--------|-----------------------------------------|
+| page      | Integer | Não         | 0      | Número da página (iniciando em 0)       |
+| size      | Integer | Não         | 10     | Quantidade de itens por página          |
+| sort      | String  | Não         | -      | Ordenação (ex: idPedido,desc)           |
+
+**Exemplos de Uso**
 
 **Response (200 OK):**
 ```json
 {
-   "data":[
-      {
-         "idPedido":1754239350400,
-         "codigoIdentificacaoCliente":"8e18a3e1-8bd5-41bd-a95d-fc3fd2ee32ea",
-         "statusPedido":"ATIVO",
-         "descricaoProdutos":[
-            {
-               "idProduto":2,
-               "nomeProduto":"Mouse Logitech",
-               "quantidadeProduto":2,
-               "precoUnitarioProduto":75.0
-            }
-         ],
-         "dataHoraCriacaoPedido":"03-08-2025 13:42:29",
-         "transactionId":"a1f10007-835c-4a14-b065-908e0d687f57"
-      }
-   ]
+  "content": [
+    {
+      "idPedido": 1,
+      "codigoIdentificacaoCliente": "cliente123",
+      "statusPedido": "ATIVO",
+      "descricaoProdutos": [
+        {
+          "idProduto": 1,
+          "nomeProduto": "Produto A",
+          "quantidadeProduto": 2,
+          "valorProduto": 25.0
+        }
+      ],
+      "dataHoraCriacaoPedido": "06/08/2025 14:30:00",
+      "transactionId": "txn-123"
+    }
+  ],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 10,
+    "sort": {
+      "empty": true,
+      "sorted": false,
+      "unsorted": true
+    },
+    "offset": 0,
+    "paged": true,
+    "unpaged": false
+  },
+  "last": true,
+  "totalElements": 1,
+  "totalPages": 1,
+  "size": 10,
+  "number": 0,
+  "sort": {
+    "empty": true,
+    "sorted": false,
+    "unsorted": true
+  },
+  "first": true,
+  "numberOfElements": 1,
+  "empty": false
 }
 ```
 
@@ -184,6 +220,27 @@ correlationId: UUID
 ```bash
 curl --request GET \
   --url http://localhost:8080/pedidos \
+  --header 'correlationId: 01aa043f-b3d3-492f-bb29-8dc2cdf6059a'
+```
+
+Primeira página com 10 itens (padrão):
+```bash
+curl --request GET \
+  --url 'http://localhost:8080/pedidos' \
+  --header 'correlationId: 01aa043f-b3d3-492f-bb29-8dc2cdf6059a'
+```
+
+Segunda página com 5 itens:
+```bash
+curl --request GET \
+  --url 'http://localhost:8080/pedidos?page=1&size=5' \
+  --header 'correlationId: 01aa043f-b3d3-492f-bb29-8dc2cdf6059a'
+```
+
+Ordenando por idPedido decrescente:
+```bash
+curl --request GET \
+  --url 'http://localhost:8080/pedidos?sort=idPedido,desc' \
   --header 'correlationId: 01aa043f-b3d3-492f-bb29-8dc2cdf6059a'
 ```
 
@@ -424,5 +481,3 @@ Formato padrão de erro:
   "mensagem": "Descrição do erro"
 }
 ```
-
-	
