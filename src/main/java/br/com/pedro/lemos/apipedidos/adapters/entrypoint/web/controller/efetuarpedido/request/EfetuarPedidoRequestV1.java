@@ -42,24 +42,15 @@ public class EfetuarPedidoRequestV1 {
         @NotNull(message = "ID do produto é obrigatório")
         private Long idProduto;
 
-        @NotBlank(message = "Nome do produto é obrigatório")
-        private String nomeProduto;
-
         @Min(value = 1, message = "Quantidade deve ser maior que zero")
         private int quantidadeProduto;
-
-        @NotNull(message = "Preço unitário é obrigatório")
-        @DecimalMin(value = "0.01", message = "Preço deve ser maior que zero")
-        private Double precoUnitario;
 
         public ProdutoRequest() {
         }
 
-        public ProdutoRequest(Long idProduto, String nomeProduto, int quantidadeProduto, Double precoUnitario) {
+        public ProdutoRequest(Long idProduto, int quantidadeProduto) {
             this.idProduto = idProduto;
-            this.nomeProduto = nomeProduto;
             this.quantidadeProduto = quantidadeProduto;
-            this.precoUnitario = precoUnitario;
         }
 
         public Long getIdProduto() {
@@ -70,14 +61,6 @@ public class EfetuarPedidoRequestV1 {
             this.idProduto = idProduto;
         }
 
-        public String getNomeProduto() {
-            return nomeProduto;
-        }
-
-        public void setNomeProduto(String nomeProduto) {
-            this.nomeProduto = nomeProduto;
-        }
-
         public int getQuantidadeProduto() {
             return quantidadeProduto;
         }
@@ -86,16 +69,8 @@ public class EfetuarPedidoRequestV1 {
             this.quantidadeProduto = quantidadeProduto;
         }
 
-        public Double getPrecoUnitario() {
-            return precoUnitario;
-        }
-
-        public void setPrecoUnitario(Double precoUnitario) {
-            this.precoUnitario = precoUnitario;
-        }
-
         public Produto toProduto() {
-            return new Produto(idProduto, nomeProduto, quantidadeProduto, precoUnitario);
+            return new Produto(idProduto, quantidadeProduto);
         }
     }
 }

@@ -206,7 +206,7 @@ class EfetuarPedidoControllerTest {
 
         verify(efetuarPedidoUseCase, times(1)).efetuar(argThat(solicitacao ->
                 solicitacao.getCodigoIdentificacaoCliente().equals("CLI-001") &&
-                        solicitacao.getProduto().size() == 1 &&
+                        solicitacao.getProdutosSolicitados().size() == 1 &&
                         solicitacao.getTransactionId().equals(transactionId)
         ));
     }

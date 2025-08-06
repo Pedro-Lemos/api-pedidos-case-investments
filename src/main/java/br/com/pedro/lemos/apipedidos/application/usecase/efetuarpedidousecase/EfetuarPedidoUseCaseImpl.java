@@ -5,7 +5,6 @@ import br.com.pedro.lemos.apipedidos.adapters.dataprovider.repository.ProdutoRep
 import br.com.pedro.lemos.apipedidos.application.exception.PedidoEmAndamentoException;
 import br.com.pedro.lemos.apipedidos.application.exception.ProdutoNaoDisponivelException;
 import br.com.pedro.lemos.apipedidos.application.exception.ProdutoNaoEncontradoException;
-import br.com.pedro.lemos.apipedidos.application.exception.DadosProdutoInconsistentesException;
 import br.com.pedro.lemos.apipedidos.application.service.GeradorIdPedidoService;
 import br.com.pedro.lemos.apipedidos.application.usecase.efetuarpedidousecase.model.SolicitacaoEfetuarPedido;
 import br.com.pedro.lemos.apipedidos.domain.entity.Pedido;
@@ -15,7 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class EfetuarPedidoUseCaseImpl implements EfetuarPedidoUseCase {
@@ -34,67 +35,56 @@ public class EfetuarPedidoUseCaseImpl implements EfetuarPedidoUseCase {
     @Override
     @Transactional
     public Long efetuar(SolicitacaoEfetuarPedido solicitacaoEfetuarPedido) {
+        Map<Long, Integer> produtosSolicitados = solicitacaoEfetuarPedido.getProdutosSolicitados();
+        List<Produto> produtosParaPedido = new ArrayList<>();
 
+        for (Map.Entry<Long, Integer> entry : produtosSolicitados.entrySet()) {
+            Long idProduto = entry.getKey();
+            Integer quantidadeDesejada = entry.getValue();
 
-        List<Produto> produtoPedido = solicitacaoEfetuarPedido.getProduto();
-        for (Produto produto : produtoPedido) {
-            Produto produtoCadastrado = produtoRepository.findById(produto.getIdProduto());
+            Produto produtoCadastrado = produtoRepository.findById(idProduto);
             if (produtoCadastrado == null) {
-                throw new ProdutoNaoEncontradoException(produto.getIdProduto());
+                throw new ProdutoNaoEncontradoException(idProduto);
             }
 
-            // Valida preco, nome e quantidade do produto
-            validarConsistenciaProduto(produto, produtoCadastrado);
-
-            int estoqueDisponivel = produtoRepository.getEstoqueDisponivel(produto.getIdProduto());
-
-            if (estoqueDisponivel < produto.getQuantidadeProduto()) {
-                throw new ProdutoNaoDisponivelException(produto.getNomeProduto());
+            if (produtoCadastrado.getQuantidadeProduto() < quantidadeDesejada) {
+                throw new ProdutoNaoDisponivelException(produtoCadastrado.getNomeProduto());
             }
+
+            // Cria uma nova instância de Produto para o pedido com os dados corretos
+            Produto produtoDoPedido = new Produto(
+                    produtoCadastrado.getIdProduto(),
+                    produtoCadastrado.getNomeProduto(),
+                    quantidadeDesejada, // Usa a quantidade desejada
+                    produtoCadastrado.getPrecoUnitarioProduto()
+            );
+            produtosParaPedido.add(produtoDoPedido);
         }
 
-        // Gera o id do Pedido
+        // 2. Gera o ID do pedido e verifica se já existe um pedido ativo com o mesmo ID
         Long idPedido = geradorIdPedidoService.gerarId();
-
         Pedido pedidoExistente = pedidoRepository.findByIdPedido(idPedido);
         if (pedidoExistente != null && pedidoExistente.getStatusPedido().equals("ATIVO")) {
             throw new PedidoEmAndamentoException(idPedido);
         }
 
+        // 3. Cria o novo pedido
         String dataHoraAtual = LocalDateTime.now().format(DateUtils.FORMATTER_DATA_HORA_PT_BR);
         Pedido pedido = new Pedido(
                 idPedido,
                 solicitacaoEfetuarPedido.getCodigoIdentificacaoCliente(),
-                solicitacaoEfetuarPedido.getProduto(),
+                produtosParaPedido, // Usa a lista de produtos criada
                 dataHoraAtual,
                 solicitacaoEfetuarPedido.getTransactionId()
         );
 
-        for (Produto produto : produtoPedido) {
+        // 4. Atualiza o estoque dos produtos
+        for (Produto produto : produtosParaPedido) {
             produtoRepository.atualizarEstoque(produto.getIdProduto(), produto.getQuantidadeProduto());
         }
 
+        // 5. Salva o pedido
         pedidoRepository.salvar(pedido);
         return idPedido;
-    }
-
-    private void validarConsistenciaProduto(Produto produtoSolicitado, Produto produtoCadastrado) {
-        // Validação de preço unitário
-        if (!produtoSolicitado.getPrecoUnitarioProduto().equals(produtoCadastrado.getPrecoUnitarioProduto())) {
-            throw new DadosProdutoInconsistentesException(
-                    "Preço unitário informado (" + produtoSolicitado.getPrecoUnitarioProduto() +
-                            ") não corresponde ao preço cadastrado (" + produtoCadastrado.getPrecoUnitarioProduto() +
-                            ") para o produto: " + produtoCadastrado.getNomeProduto()
-            );
-        }
-
-        // Validação de nome do produto
-        if (!produtoSolicitado.getNomeProduto().equals(produtoCadastrado.getNomeProduto())) {
-            throw new DadosProdutoInconsistentesException(
-                    "Nome do produto informado (" + produtoSolicitado.getNomeProduto() +
-                            ") não corresponde ao nome cadastrado (" + produtoCadastrado.getNomeProduto() +
-                            ") para o ID: " + produtoSolicitado.getIdProduto()
-            );
-        }
     }
 }

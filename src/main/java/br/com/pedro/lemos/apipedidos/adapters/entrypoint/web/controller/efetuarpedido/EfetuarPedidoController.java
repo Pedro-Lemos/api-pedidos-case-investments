@@ -10,14 +10,14 @@ import br.com.pedro.lemos.apipedidos.application.exception.ProdutoNaoDisponivelE
 import br.com.pedro.lemos.apipedidos.application.exception.ProdutoNaoEncontradoException;
 import br.com.pedro.lemos.apipedidos.application.usecase.efetuarpedidousecase.EfetuarPedidoUseCase;
 import br.com.pedro.lemos.apipedidos.application.usecase.efetuarpedidousecase.model.SolicitacaoEfetuarPedido;
-import br.com.pedro.lemos.apipedidos.domain.entity.Produto;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/pedidos")
@@ -38,13 +38,15 @@ public class EfetuarPedidoController {
         try {
 
 
-            List<Produto> produtos = request.getProdutos().stream()
-                    .map(EfetuarPedidoRequestV1.ProdutoRequest::toProduto)
-                    .toList();
+            Map<Long, Integer> produtosDesejados = request.getProdutos().stream()
+                    .collect(Collectors.toMap(
+                            EfetuarPedidoRequestV1.ProdutoRequest::getIdProduto,
+                            EfetuarPedidoRequestV1.ProdutoRequest::getQuantidadeProduto
+                    ));
 
             SolicitacaoEfetuarPedido solicitacao = new SolicitacaoEfetuarPedido(
                     request.getCodigoIdentificacaoCliente(),
-                    produtos,
+                    produtosDesejados,
                     transactionId
             );
 

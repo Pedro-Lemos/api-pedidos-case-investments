@@ -3,11 +3,16 @@ package br.com.pedro.lemos.apipedidos.domain.entity;
 public class Produto {
 
     private Long idProduto;
-    private String nomeProduto;
-    private int quantidadeProduto;
-    private Double precoUnitarioProduto;
+    private String nomeProduto; // renomear para apenas "nome"
+    private int quantidadeProduto; // Sugiro renomear para "quantidadeDisponivel"
+    private Double precoUnitarioProduto; // Aqui o tipo ideal seria BigDecimal e sugiro renomear apenas para "precoUnitario"
 
     public Produto() {
+    }
+
+    public Produto(Long idProduto, int quantidadeProduto) {
+        this.idProduto = idProduto;
+        this.quantidadeProduto = quantidadeProduto;
     }
 
     public Produto(Long idProduto, String nomeProduto, int quantidadeProduto, Double precoUnitarioProduto) {
@@ -21,6 +26,8 @@ public class Produto {
         return idProduto;
     }
 
+    // REMOVA todos os métodos set() e deixe somente os que for usar.
+    // Penso que talvez só o método de atualizar quantidade seja necessário
     public void setIdProduto(Long idProduto) {
         this.idProduto = idProduto;
     }

@@ -1,18 +1,16 @@
 package br.com.pedro.lemos.apipedidos.application.usecase.efetuarpedidousecase.model;
 
-import br.com.pedro.lemos.apipedidos.domain.entity.Produto;
-
-import java.util.List;
+import java.util.Map;
 
 public class SolicitacaoEfetuarPedido {
 
-    private String codigoIdentificacaoCliente;
-    private List<Produto> produto;
-    private String transactionId;
+    private final String codigoIdentificacaoCliente;
+    private final Map<Long, Integer> produtosDesejados;
+    private final String transactionId;
 
-    public SolicitacaoEfetuarPedido(String codigoIdentificacaoCliente, List<Produto> produto, String transactionId) {
+    public SolicitacaoEfetuarPedido(String codigoIdentificacaoCliente, Map<Long, Integer> produtosDesejados, String transactionId) {
         this.codigoIdentificacaoCliente = codigoIdentificacaoCliente;
-        this.produto = produto;
+        this.produtosDesejados = produtosDesejados;
         this.transactionId = transactionId;
     }
 
@@ -20,8 +18,8 @@ public class SolicitacaoEfetuarPedido {
         return codigoIdentificacaoCliente;
     }
 
-    public List<Produto> getProduto() {
-        return produto;
+    public Map<Long, Integer> getProdutosSolicitados() {
+        return produtosDesejados;
     }
 
     public String getTransactionId() {

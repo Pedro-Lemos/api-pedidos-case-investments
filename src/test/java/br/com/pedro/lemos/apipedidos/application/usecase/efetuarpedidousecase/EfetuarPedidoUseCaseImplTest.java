@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -37,81 +38,89 @@ class EfetuarPedidoUseCaseImplTest {
 
     @Test
     void deveEfetuarPedidoComSucessoQuandoTodosOsProdutosEstaoDisponiveis() {
+        // Given
         SolicitacaoEfetuarPedido solicitacao = criarSolicitacaoEfetuarPedido();
-        Produto produto = criarProduto();
-        Long idPedidoGerado = 1L;
+        Produto produtoDisponivel = criarProdutoEmEstoque(1L, 10);
+        Long idPedidoGerado = 12345L;
 
-        when(produtoRepository.findById(produto.getIdProduto())).thenReturn(produto);
-        when(produtoRepository.getEstoqueDisponivel(produto.getIdProduto())).thenReturn(10);
+        when(produtoRepository.findById(1L)).thenReturn(produtoDisponivel);
         when(geradorIdPedidoService.gerarId()).thenReturn(idPedidoGerado);
         when(pedidoRepository.findByIdPedido(idPedidoGerado)).thenReturn(null);
 
+        // When
         Long resultado = efetuarPedidoUseCase.efetuar(solicitacao);
 
+        // Then
         assertEquals(idPedidoGerado, resultado);
-        verify(produtoRepository, times(1)).atualizarEstoque(produto.getIdProduto(), produto.getQuantidadeProduto());
+        verify(produtoRepository, times(1)).findById(1L);
         verify(pedidoRepository, times(1)).salvar(any(Pedido.class));
         verify(geradorIdPedidoService, times(1)).gerarId();
+        // Verifica se o estoque foi atualizado com a quantidade desejada (2)
+        verify(produtoRepository, times(1)).atualizarEstoque(1L, 2);
     }
 
     @Test
     void deveLancarExcecaoQuandoPedidoJaEstaEmAndamento() {
+        // Given
         SolicitacaoEfetuarPedido solicitacao = criarSolicitacaoEfetuarPedido();
-        Produto produto = criarProduto();
-        Long idPedidoGerado = 1L;
+        Produto produtoDisponivel = criarProdutoEmEstoque(1L, 10);
+        Long idPedidoGerado = 12345L;
         Pedido pedidoExistente = criarPedido();
         pedidoExistente.setStatusPedido("ATIVO");
 
-        // Mock para passar na validação do produto primeiro
-        when(produtoRepository.findById(produto.getIdProduto())).thenReturn(produto);
-        when(produtoRepository.getEstoqueDisponivel(produto.getIdProduto())).thenReturn(10);
+        when(produtoRepository.findById(1L)).thenReturn(produtoDisponivel);
         when(geradorIdPedidoService.gerarId()).thenReturn(idPedidoGerado);
         when(pedidoRepository.findByIdPedido(idPedidoGerado)).thenReturn(pedidoExistente);
 
+        // When & Then
         assertThrows(PedidoEmAndamentoException.class, () -> efetuarPedidoUseCase.efetuar(solicitacao));
+        verify(pedidoRepository, never()).salvar(any(Pedido.class));
     }
 
     @Test
     void deveLancarExcecaoQuandoProdutoNaoEncontrado() {
+        // Given
         SolicitacaoEfetuarPedido solicitacao = criarSolicitacaoEfetuarPedido();
-        Produto produto = criarProduto();
+        when(produtoRepository.findById(1L)).thenReturn(null);
 
-        when(produtoRepository.findById(produto.getIdProduto())).thenReturn(null);
-
+        // When & Then
         assertThrows(ProdutoNaoEncontradoException.class, () -> efetuarPedidoUseCase.efetuar(solicitacao));
     }
 
     @Test
     void deveLancarExcecaoQuandoEstoqueInsuficiente() {
-        SolicitacaoEfetuarPedido solicitacao = criarSolicitacaoEfetuarPedido();
-        Produto produto = criarProduto();
+        // Given
+        SolicitacaoEfetuarPedido solicitacao = criarSolicitacaoEfetuarPedido(); // Solicita 2 unidades
+        Produto produtoComEstoqueBaixo = criarProdutoEmEstoque(1L, 1); // Apenas 1 em estoque
 
-        when(produtoRepository.findById(produto.getIdProduto())).thenReturn(produto);
-        when(produtoRepository.getEstoqueDisponivel(produto.getIdProduto())).thenReturn(0);
+        when(produtoRepository.findById(1L)).thenReturn(produtoComEstoqueBaixo);
 
+        // When & Then
         assertThrows(ProdutoNaoDisponivelException.class, () -> efetuarPedidoUseCase.efetuar(solicitacao));
     }
 
     @Test
     void deveLancarExcecaoGenericaQuandoErroInesperadoAcontece() {
+        // Given
         SolicitacaoEfetuarPedido solicitacao = criarSolicitacaoEfetuarPedido();
-        Produto produto = criarProduto();
+        when(produtoRepository.findById(1L)).thenThrow(new RuntimeException("Erro inesperado de banco de dados"));
 
-        when(produtoRepository.findById(produto.getIdProduto())).thenThrow(new RuntimeException("Erro inesperado"));
-
+        // When & Then
         assertThrows(RuntimeException.class, () -> efetuarPedidoUseCase.efetuar(solicitacao));
     }
 
     private SolicitacaoEfetuarPedido criarSolicitacaoEfetuarPedido() {
-        Produto produto = criarProduto();
-        return new SolicitacaoEfetuarPedido("123", List.of(produto), "transacao123");
+        // O cliente deseja 2 unidades do produto com ID 1
+        Map<Long, Integer> produtosDesejados = Map.of(1L, 2);
+        return new SolicitacaoEfetuarPedido("cliente-123", produtosDesejados, "transacao-abc");
     }
 
-    private Produto criarProduto() {
-        return new Produto(1L, "Produto Teste", 5, 10.00);
+    private Produto criarProdutoEmEstoque(Long id, int quantidadeEmEstoque) {
+        return new Produto(id, "Produto Teste", quantidadeEmEstoque, 10.00);
     }
 
     private Pedido criarPedido() {
-        return new Pedido(1L, "123", List.of(criarProduto()), "2023-10-01T10:00:00", "transacao123");
+        Produto produtoDoPedido = new Produto(1L, "Produto Teste", 2, 10.00);
+        return new Pedido(12345L, "cliente-123", List.of(produtoDoPedido), "2023-10-01T10:00:00", "transacao-abc");
     }
 }

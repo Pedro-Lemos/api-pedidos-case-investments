@@ -105,15 +105,11 @@ correlationId: UUID
   "produtos": [
     {
       "idProduto": 1,
-      "nomeProduto": "Notebook Dell",
-      "quantidadeProduto": 2,
-      "precoUnitario": 2500.00
+      "quantidadeProduto": 2
     },
     {
       "idProduto": 2,
-      "nomeProduto": "Mouse",
-      "quantidadeProduto": 1,
-      "precoUnitario": 50.00
+      "quantidadeProduto": 1
     }
   ]
 }
@@ -152,9 +148,7 @@ curl --request POST \
 	"produtos": [
 		{
 			"idProduto": 2,
-			"nomeProduto": "Mouse Logitech",
-			"quantidadeProduto": 1,
-			"precoUnitario": 75.00
+			"quantidadeProduto": 1
 		}
 	]
 }'
