@@ -23,7 +23,8 @@ Desenvolvido por mim mesmo. :)
 
 Para efetuar um pedido é necessário informar:
 - Um `codigoIdentificacaoCliente`.
-- E um `Produto` ou uma lista de `Produtos` validos.
+- E um `Produto` ou uma lista de `Produtos` validos;
+  - Contendo um ``id`` e a `quantidade` do produto.
 
 Para listar pedidos ativos, é necessário informar:
 - Um `pedidoId`.
@@ -32,15 +33,6 @@ Para cancelar um pedido, é necessário:
 - Um `pedidoId` válido.
 - Que o pedido esteja ativo.
 - Um `motivoCancelamento`.
-
-
-### PedidoId
-
-O `pedidoId` é gerado automaticamente após a efetuação de um novo pedido.
-Ele sempre seguirá o padrão `DIA + MES + ANO + SEQUENCIAL`
-
-Exemplo: `4082025000001`
-
 
 ## Como Executar o Projeto
 

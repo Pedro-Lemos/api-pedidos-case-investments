@@ -4,8 +4,6 @@ import br.com.pedro.lemos.apipedidos.domain.entity.Pedido;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -16,6 +14,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Repository
 public class PedidoRepositoryImpl implements PedidoRepository {
@@ -35,26 +35,15 @@ public class PedidoRepositoryImpl implements PedidoRepository {
 
     @Override
     public Pedido findByIdPedido(Long idPedido) {
-        return carregarTodosPedidos().stream()
-                .filter(pedido -> pedido.getIdPedido().equals(idPedido))
-                .findFirst()
-                .orElse(null);
+        return carregarTodosPedidos().get(idPedido);
     }
 
     @Override
     public void salvar(Pedido pedido) {
         try {
-            List<Pedido> pedidos = carregarTodosPedidos();
-
-            // Remove pedido existente se houver (para atualização)
-            pedidos.removeIf(p -> p.getIdPedido().equals(pedido.getIdPedido()));
-
-            // Adiciona o novo/atualizado pedido
-            pedidos.add(pedido);
-
-            // Salva a lista completa no arquivo JSON
+            Map<Long, Pedido> pedidos = carregarTodosPedidos();
+            pedidos.put(pedido.getIdPedido(), pedido);
             salvarTodosPedidos(pedidos);
-
         } catch (Exception e) {
             throw new RuntimeException("Não foi possível salvar o pedido", e);
         }
@@ -62,38 +51,31 @@ public class PedidoRepositoryImpl implements PedidoRepository {
 
     @Override
     public List<Pedido> findByStatus(String status) {
-        List<Pedido> todosPedidos = carregarTodosPedidos();
-        return todosPedidos.stream()
+        return carregarTodosPedidos().values().stream()
                 .filter(pedido -> status.equals(pedido.getStatusPedido()))
                 .toList();
     }
 
     @Override
     public List<Pedido> findAll() {
-        return carregarTodosPedidos();
+        return new ArrayList<>(carregarTodosPedidos().values());
     }
 
-    private List<Pedido> carregarTodosPedidos() {
+    private Map<Long, Pedido> carregarTodosPedidos() {
         try {
             File file = new File(filePath);
-
             if (!file.exists() || file.length() == 0) {
-                return new ArrayList<>();
+                return new java.util.HashMap<>();
             }
-
-            return objectMapper.readValue(file, new TypeReference<List<Pedido>>() {});
-
+            return objectMapper.readValue(file, new TypeReference<Map<Long, Pedido>>() {});
         } catch (IOException e) {
-            return new ArrayList<>();
+            throw new RuntimeException("Não foi possível carregar os pedidos do arquivo", e);
         }
     }
 
-    private void salvarTodosPedidos(List<Pedido> pedidos) {
+    private void salvarTodosPedidos(Map<Long, Pedido> pedidos) {
         try {
-            objectMapper.writerWithDefaultPrettyPrinter()
-                    .writeValue(new File(filePath), pedidos);
-
-
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(filePath), pedidos);
         } catch (IOException e) {
             throw new RuntimeException("Não foi possível salvar os pedidos no arquivo", e);
         }
@@ -102,18 +84,13 @@ public class PedidoRepositoryImpl implements PedidoRepository {
     private void criaArquivoSeNaoExistir() {
         try {
             Path path = Paths.get(filePath);
-            Path parentDir = path.getParent();
-
-            // Cria o diretório pai se não existir
-            if (parentDir != null && !Files.exists(parentDir)) {
-                Files.createDirectories(parentDir);
-            }
-
-            // Cria o arquivo JSON vazio se não existir
             if (!Files.exists(path)) {
-                salvarTodosPedidos(new ArrayList<>());
+                Path parentDir = path.getParent();
+                if (parentDir != null && !Files.exists(parentDir)) {
+                    Files.createDirectories(parentDir);
+                }
+                salvarTodosPedidos(new java.util.HashMap<>());
             }
-
         } catch (IOException e) {
             throw new RuntimeException("Não foi possível criar o arquivo da base de pedidos", e);
         }

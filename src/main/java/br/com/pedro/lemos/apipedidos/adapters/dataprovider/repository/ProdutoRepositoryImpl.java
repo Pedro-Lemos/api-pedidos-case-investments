@@ -4,8 +4,6 @@ import br.com.pedro.lemos.apipedidos.domain.entity.Produto;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -14,18 +12,18 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Repository
 public class ProdutoRepositoryImpl implements ProdutoRepository {
 
-    private static final Logger logger = LoggerFactory.getLogger(ProdutoRepositoryImpl.class);
-
     private final ObjectMapper objectMapper;
     private final String filePath;
 
-    public ProdutoRepositoryImpl(@Value("${app.produtos.file.path}") String filePath) {
+    public ProdutoRepositoryImpl(@Value("${app.produtos.file.path:data/produtos.json}") String filePath) {
         this.filePath = filePath;
         this.objectMapper = new ObjectMapper();
     }
@@ -33,92 +31,64 @@ public class ProdutoRepositoryImpl implements ProdutoRepository {
     @PostConstruct
     public void init() {
         criaArquivoSeNaoExistir();
-        popularDadosIniciais();
     }
 
     @Override
     public Produto findById(Long idProduto) {
-        return carregarTodosProdutos().stream()
-                .filter(produto -> produto.getIdProduto().equals(idProduto))
-                .findFirst()
-                .orElse(null);
+        Map<Long, Produto> produtos = carregarTodosProdutos();
+        return produtos.get(idProduto);
     }
 
     @Override
     public Produto salvar(Produto produto) {
-        try {
-            List<Produto> produtos = carregarTodosProdutos();
-
-            // Remove produto existente se houver (para atualização)
-            produtos.removeIf(p -> p.getIdProduto().equals(produto.getIdProduto()));
-
-            // Adiciona o novo/atualizado produto
-            produtos.add(produto);
-
-            // Salva a lista completa no arquivo JSON
-            salvarTodosProdutos(produtos);
-
-
-            return produto;
-
-        } catch (Exception e) {
-            throw new RuntimeException("Não foi possível salvar o produto", e);
-        }
+        Map<Long, Produto> produtos = carregarTodosProdutos();
+        produtos.put(produto.getIdProduto(), produto);
+        salvarTodosProdutos(produtos);
+        return produto;
     }
 
     @Override
     public int getEstoqueDisponivel(Long idProduto) {
         Produto produto = findById(idProduto);
-        return produto != null ? produto.getQuantidadeProduto() : 0;
+        if (produto == null) {
+            throw new RuntimeException("Produto com ID " + idProduto + " não encontrado.");
+        }
+        return produto.getQuantidadeProduto();
     }
 
     @Override
-    public void atualizarEstoque(Long idProduto, int quantidadeAtualizada) {
-        List<Produto> produtos = carregarTodosProdutos();
+    public void atualizarEstoque(Long idProduto, int quantidadeComprada) {
+        Map<Long, Produto> produtos = carregarTodosProdutos();
+        Produto produto = produtos.get(idProduto);
 
-        produtos.stream()
-                .filter(p -> p.getIdProduto().equals(idProduto))
-                .findFirst()
-                .ifPresentOrElse(produto -> {
-                    int estoqueAtual = produto.getQuantidadeProduto();
-                    int novoEstoque = estoqueAtual - quantidadeAtualizada;
+        if (produto == null) {
+            throw new RuntimeException("Produto com ID " + idProduto + " não encontrado para atualização de estoque.");
+        }
 
-                    if (novoEstoque < 0) {
-                        throw new RuntimeException("Estoque não pode ser negativo para produto: " + idProduto);
-                    }
+        int novoEstoque = produto.getQuantidadeProduto() - quantidadeComprada;
+        if (novoEstoque < 0) {
+            throw new RuntimeException("Estoque insuficiente para o produto ID " + idProduto);
+        }
 
-                    produto.setQuantidadeProduto(novoEstoque);
-                    salvarTodosProdutos(produtos);
-
-
-                }, () -> {
-                    throw new RuntimeException("Produto não encontrado: " + idProduto);
-                });
+        produto.setQuantidadeProduto(novoEstoque);
+        salvarTodosProdutos(produtos);
     }
 
-    private List<Produto> carregarTodosProdutos() {
+    private Map<Long, Produto> carregarTodosProdutos() {
         try {
             File file = new File(filePath);
-
             if (!file.exists() || file.length() == 0) {
-                return new ArrayList<>();
+                return new java.util.HashMap<>();
             }
-
-            List<Produto> produtos = objectMapper.readValue(file, new TypeReference<List<Produto>>() {});
-
-            return produtos;
-
+            return objectMapper.readValue(file, new TypeReference<Map<Long, Produto>>() {});
         } catch (IOException e) {
-            return new ArrayList<>();
+            throw new RuntimeException("Não foi possível carregar os produtos do arquivo", e);
         }
     }
 
-    private void salvarTodosProdutos(List<Produto> produtos) {
+    private void salvarTodosProdutos(Map<Long, Produto> produtos) {
         try {
-            objectMapper.writerWithDefaultPrettyPrinter()
-                    .writeValue(new File(filePath), produtos);
-
-
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(filePath), produtos);
         } catch (IOException e) {
             throw new RuntimeException("Não foi possível salvar os produtos no arquivo", e);
         }
@@ -127,37 +97,25 @@ public class ProdutoRepositoryImpl implements ProdutoRepository {
     private void criaArquivoSeNaoExistir() {
         try {
             Path path = Paths.get(filePath);
-            Path parentDir = path.getParent();
-
-            // Cria o diretório pai se não existir
-            if (parentDir != null && !Files.exists(parentDir)) {
-                Files.createDirectories(parentDir);
-            }
-
-            // Cria o arquivo JSON vazio se não existir
             if (!Files.exists(path)) {
-                salvarTodosProdutos(new ArrayList<>());
+                Path parentDir = path.getParent();
+                if (parentDir != null && !Files.exists(parentDir)) {
+                    Files.createDirectories(parentDir);
+                }
+                // Popula com dados iniciais se o arquivo não existir
+                List<Produto> produtosIniciais = List.of(
+                        new Produto(1L, "Notebook Dell", 10, 2500.00),
+                        new Produto(2L, "Mouse Logitech", 50, 75.00),
+                        new Produto(3L, "Teclado Mecânico", 25, 350.00),
+                        new Produto(4L, "Monitor 24 polegadas", 15, 800.00),
+                        new Produto(5L, "Headset Gamer", 30, 200.00)
+                );
+                Map<Long, Produto> mapaProdutos = produtosIniciais.stream()
+                        .collect(Collectors.toMap(Produto::getIdProduto, Function.identity()));
+                salvarTodosProdutos(mapaProdutos);
             }
-
         } catch (IOException e) {
             throw new RuntimeException("Não foi possível criar o arquivo da base de produtos", e);
-        }
-    }
-
-    private void popularDadosIniciais() {
-        List<Produto> produtos = carregarTodosProdutos();
-
-        if (produtos.isEmpty()) {
-            List<Produto> produtosIniciais = List.of(
-                    new Produto(1L, "Notebook Dell", 10, 2500.00),
-                    new Produto(2L, "Mouse Logitech", 50, 75.00),
-                    new Produto(3L, "Teclado Mecânico", 25, 350.00),
-                    new Produto(4L, "Monitor 24 polegadas", 15, 800.00),
-                    new Produto(5L, "Headset Gamer", 30, 200.00)
-            );
-
-            salvarTodosProdutos(produtosIniciais);
-            logger.info("Dados iniciais de produtos criados");
         }
     }
 }

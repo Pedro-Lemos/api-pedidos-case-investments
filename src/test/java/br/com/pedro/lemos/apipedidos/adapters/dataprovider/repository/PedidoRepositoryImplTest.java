@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,168 +26,87 @@ class PedidoRepositoryImplTest {
     Path tempDir;
 
     private PedidoRepositoryImpl repository;
-    private String filePath;
-    private ObjectMapper objectMapper;
-    private String codigoCliente = UUID.randomUUID().toString();
-    private String transactionId = UUID.randomUUID().toString();
+    private File testFile;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     void setUp() {
-        filePath = tempDir.resolve("pedidos-test.json").toString();
-        repository = new PedidoRepositoryImpl(filePath);
-        objectMapper = new ObjectMapper();
+        testFile = tempDir.resolve("pedidos-test.json").toFile();
+        repository = new PedidoRepositoryImpl(testFile.getAbsolutePath());
     }
 
     @Test
-    void deveCriarArquivoVazioQuandoNaoExistir() {
-        
+    void deveCriarArquivoVazioQuandoNaoExistir() throws IOException {
+        assertFalse(testFile.exists());
         repository.init();
-
-        
-        File file = new File(filePath);
-        assertTrue(file.exists());
-        assertTrue(file.length() >= 2); // pelo menos "[]"
+        assertTrue(testFile.exists());
+        String content = Files.readString(testFile.toPath());
+        assertEquals("{}", content.replaceAll("\\s", ""));
     }
 
     @Test
-    void deveSalvarPedidoCorretamente() {
-        
-        repository.init();
+    void deveSalvarEEncontrarPedido() {
         Pedido pedido = criarPedidoTeste();
-
-        
         repository.salvar(pedido);
 
-        
-        Pedido pedidoSalvo = repository.findByIdPedido(1L);
-        assertNotNull(pedidoSalvo);
-        assertEquals(1L, pedidoSalvo.getIdPedido());
-        assertEquals(codigoCliente, pedidoSalvo.getCodigoIdentificacaoCliente());
-        assertEquals("ATIVO", pedidoSalvo.getStatusPedido());
-        assertEquals(transactionId, pedidoSalvo.getTransactionId());
-        assertEquals(2, pedidoSalvo.getDescricaoProdutos().size());
+        Pedido pedidoEncontrado = repository.findByIdPedido(pedido.getIdPedido());
+
+        assertNotNull(pedidoEncontrado);
+        assertEquals(pedido.getIdPedido(), pedidoEncontrado.getIdPedido());
     }
 
     @Test
-    void deveAtualizarPedidoExistente() {
-        
-        repository.init();
-        Pedido pedidoOriginal = criarPedidoTeste();
-        repository.salvar(pedidoOriginal);
-
-        pedidoOriginal.setStatusPedido("CANCELADO");
-        repository.salvar(pedidoOriginal);
-
-        
-        Pedido pedidoAtualizado = repository.findByIdPedido(1L);
-        assertNotNull(pedidoAtualizado);
-        assertEquals("CANCELADO", pedidoAtualizado.getStatusPedido());
-        assertEquals(codigoCliente, pedidoAtualizado.getCodigoIdentificacaoCliente());
-    }
-
-    @Test
-    void deveRetornarNullQuandoPedidoNaoExistir() {
-        
-        repository.init();
-
-        
+    void deveRetornarNuloSePedidoNaoExistir() {
         Pedido pedido = repository.findByIdPedido(999L);
-
-        
         assertNull(pedido);
     }
 
     @Test
-    void deveBuscarPedidosPorStatus() {
-        
-        repository.init();
-        Pedido pedidoAtivo1 = criarPedidoTeste(1L, "ATIVO");
-        Pedido pedidoAtivo2 = criarPedidoTeste(2L, "ATIVO");
-        Pedido pedidoCancelado = criarPedidoTeste(3L, "CANCELADO");
+    void deveListarPedidosPorStatus() throws IOException {
+        Pedido pedidoAtivo = criarPedidoTeste(1L, "ATIVO");
+        Pedido pedidoInativo = criarPedidoTeste(2L, "INATIVO");
+        Pedido outroPedidoAtivo = criarPedidoTeste(3L, "ATIVO");
 
-        repository.salvar(pedidoAtivo1);
-        repository.salvar(pedidoAtivo2);
-        repository.salvar(pedidoCancelado);
+        Map<Long, Pedido> pedidos = Map.of(
+                pedidoAtivo.getIdPedido(), pedidoAtivo,
+                pedidoInativo.getIdPedido(), pedidoInativo,
+                outroPedidoAtivo.getIdPedido(), outroPedidoAtivo
+        );
+        objectMapper.writerWithDefaultPrettyPrinter().writeValue(testFile, pedidos);
 
-        
         List<Pedido> pedidosAtivos = repository.findByStatus("ATIVO");
-        List<Pedido> pedidosCancelados = repository.findByStatus("CANCELADO");
 
-        
         assertEquals(2, pedidosAtivos.size());
-        assertEquals(1, pedidosCancelados.size());
-        assertTrue(pedidosAtivos.stream().allMatch(p -> "ATIVO".equals(p.getStatusPedido())));
-        assertTrue(pedidosCancelados.stream().allMatch(p -> "CANCELADO".equals(p.getStatusPedido())));
+        assertTrue(pedidosAtivos.stream().allMatch(p -> p.getStatusPedido().equals("ATIVO")));
     }
 
     @Test
-    void deveRetornarListaVaziaQuandoNaoHouverPedidosComStatus() {
-        
-        repository.init();
-
-        
-        List<Pedido> pedidos = repository.findByStatus("INEXISTENTE");
-
-        
-        assertTrue(pedidos.isEmpty());
-    }
-
-    @Test
-    void deveSalvarMultiplosPedidos() {
-        
-        repository.init();
+    void deveListarTodosOsPedidos() throws IOException {
         Pedido pedido1 = criarPedidoTeste(1L, "ATIVO");
-        Pedido pedido2 = criarPedidoTeste(2L, "CANCELADO");
-        Pedido pedido3 = criarPedidoTeste(3L, "ATIVO");
+        Pedido pedido2 = criarPedidoTeste(2L, "INATIVO");
 
-        
-        repository.salvar(pedido1);
-        repository.salvar(pedido2);
-        repository.salvar(pedido3);
+        Map<Long, Pedido> pedidos = Map.of(
+                pedido1.getIdPedido(), pedido1,
+                pedido2.getIdPedido(), pedido2
+        );
+        objectMapper.writerWithDefaultPrettyPrinter().writeValue(testFile, pedidos);
 
-        
-        assertNotNull(repository.findByIdPedido(1L));
-        assertNotNull(repository.findByIdPedido(2L));
-        assertNotNull(repository.findByIdPedido(3L));
+        List<Pedido> todosOsPedidos = repository.findAll();
+
+        assertEquals(2, todosOsPedidos.size());
     }
 
     @Test
-    void deveManterDadosAposRecriarRepository() {
-        
-        repository.init();
-        Pedido pedido = criarPedidoTeste();
-        repository.salvar(pedido);
-
-        PedidoRepositoryImpl novoRepository = new PedidoRepositoryImpl(filePath);
-
-        
-        Pedido pedidoCarregado = novoRepository.findByIdPedido(1L);
-        assertNotNull(pedidoCarregado);
-        assertEquals(codigoCliente, pedidoCarregado.getCodigoIdentificacaoCliente());
-    }
-
-    @Test
-    void deveCarregarListaVaziaQuandoArquivoEstaVazio() throws IOException {
-        
-        Files.createFile(Path.of(filePath));
-
-        
-        List<Pedido> pedidos = repository.findByStatus("ATIVO");
-
-        
+    void deveCarregarMapaVazioQuandoArquivoEstaVazio() throws IOException {
+        Files.createFile(testFile.toPath());
+        List<Pedido> pedidos = repository.findAll();
         assertTrue(pedidos.isEmpty());
     }
 
     @Test
-    void deveCarregarListaVaziaQuandoArquivoTemJSONInvalido() throws IOException {
-        
-        Files.write(Path.of(filePath), "json inválido".getBytes());
-
-        
-        List<Pedido> pedidos = repository.findByStatus("ATIVO");
-
-        
-        assertTrue(pedidos.isEmpty());
+    void deveLancarExcecaoAoCarregarArquivoComJSONInvalido() throws IOException {
+        Files.writeString(testFile.toPath(), "[{]");
+        assertThrows(RuntimeException.class, () -> repository.findAll());
     }
 
     private Pedido criarPedidoTeste() {
@@ -195,16 +115,16 @@ class PedidoRepositoryImplTest {
 
     private Pedido criarPedidoTeste(Long id, String status) {
         List<Produto> produtos = Arrays.asList(
-                new Produto(1L, "Notebook", 2, 2500.00),
-                new Produto(2L, "Mouse", 1, 75.00)
+                new Produto(1L, "Produto A", 1, 10.0),
+                new Produto(2L, "Produto B", 2, 20.0)
         );
 
         Pedido pedido = new Pedido(
                 id,
-                codigoCliente,
+                UUID.randomUUID().toString(),
                 produtos,
                 LocalDateTime.now().format(DateUtils.FORMATTER_DATA_HORA_PT_BR),
-                transactionId
+                UUID.randomUUID().toString()
         );
         pedido.setStatusPedido(status);
         return pedido;

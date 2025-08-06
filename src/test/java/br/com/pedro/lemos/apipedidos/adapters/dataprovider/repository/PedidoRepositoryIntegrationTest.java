@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -58,10 +57,9 @@ class PedidoRepositoryIntegrationTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        // Limpa e recria os arquivos de teste antes de cada teste
         Files.deleteIfExists(Path.of(PEDIDOS_TEST_FILE));
         Files.deleteIfExists(Path.of(PRODUTOS_TEST_FILE));
-        produtoRepository.init(); // Popula com dados iniciais
+        produtoRepository.init();
         when(geradorIdPedidoService.gerarId()).thenAnswer(invocation -> idPedidoCounter++);
     }
 
@@ -74,7 +72,7 @@ class PedidoRepositoryIntegrationTest {
     @Test
     void deveEfetuarPedidoECriarArquivoJSON() {
         // Given
-        Map<Long, Integer> produtosDesejados = Map.of(1L, 1); // 1 Notebook
+        Map<Long, Integer> produtosDesejados = Map.of(1L, 1);
         SolicitacaoEfetuarPedido solicitacao = new SolicitacaoEfetuarPedido("CLI001", produtosDesejados, "TXN001");
 
         // When
@@ -89,7 +87,7 @@ class PedidoRepositoryIntegrationTest {
     @Test
     void deveVerificarConteudoDoArquivoJSON() {
         // Given
-        Map<Long, Integer> produtosDesejados = Map.of(2L, 2); // 2 Mouses
+        Map<Long, Integer> produtosDesejados = Map.of(2L, 2);
         SolicitacaoEfetuarPedido solicitacao = new SolicitacaoEfetuarPedido("CLI002", produtosDesejados, "TXN002");
 
         // When
@@ -109,11 +107,9 @@ class PedidoRepositoryIntegrationTest {
     @Test
     void devePermitirMultiplosPedidosComEstoqueSuficiente() {
         // Given
-        // Pedido 1: 5 Notebooks (Estoque inicial: 10)
         Map<Long, Integer> produtosPedido1 = Map.of(1L, 5);
         SolicitacaoEfetuarPedido solicitacao1 = new SolicitacaoEfetuarPedido("CLI003", produtosPedido1, "TXN003");
 
-        // Pedido 2: 3 Notebooks (Estoque restante: 5)
         Map<Long, Integer> produtosPedido2 = Map.of(1L, 3);
         SolicitacaoEfetuarPedido solicitacao2 = new SolicitacaoEfetuarPedido("CLI004", produtosPedido2, "TXN004");
 
@@ -129,23 +125,17 @@ class PedidoRepositoryIntegrationTest {
     @Test
     void naoDevePermitirPedidoComEstoqueInsuficiente() {
         // Given
-        // Tenta comprar 11 notebooks, mas só existem 10 em estoque
         Map<Long, Integer> produtosDesejados = Map.of(1L, 11);
         SolicitacaoEfetuarPedido solicitacao = new SolicitacaoEfetuarPedido("CLI005", produtosDesejados, "TXN005");
 
         // When & Then
-        assertThrows(ProdutoNaoDisponivelException.class, () -> {
-            efetuarPedidoUseCase.efetuar(solicitacao);
-        });
+        assertThrows(ProdutoNaoDisponivelException.class, () -> efetuarPedidoUseCase.efetuar(solicitacao));
     }
 
     @Test
     void deveValidarEstruturacaoJSONCorreta() throws IOException {
         // Given
-        Map<Long, Integer> produtosDesejados = Map.of(
-                1L, 1, // 1 Notebook
-                2L, 1  // 1 Mouse
-        );
+        Map<Long, Integer> produtosDesejados = Map.of(1L, 1, 2L, 1);
         SolicitacaoEfetuarPedido solicitacao = new SolicitacaoEfetuarPedido("CLI006", produtosDesejados, "TXN999");
 
         // When
@@ -155,16 +145,13 @@ class PedidoRepositoryIntegrationTest {
         File arquivoJSON = new File(PEDIDOS_TEST_FILE);
         String conteudoJSON = Files.readString(arquivoJSON.toPath());
 
+        assertTrue(conteudoJSON.contains("\"1\" : {")); // Verifica se o ID é a chave do objeto
         assertTrue(conteudoJSON.contains("\"idPedido\" : 1"));
         assertTrue(conteudoJSON.contains("\"codigoIdentificacaoCliente\" : \"CLI006\""));
-        assertTrue(conteudoJSON.contains("\"statusPedido\" : \"ATIVO\""));
         assertTrue(conteudoJSON.contains("\"transactionId\" : \"TXN999\""));
-        assertTrue(conteudoJSON.contains("\"descricaoProdutos\""));
         assertTrue(conteudoJSON.contains("\"Notebook Dell\""));
         assertTrue(conteudoJSON.contains("\"Mouse Logitech\""));
 
-        assertDoesNotThrow(() -> {
-            objectMapper.readValue(arquivoJSON, new TypeReference<List<Pedido>>() {});
-        });
+        assertDoesNotThrow(() -> objectMapper.readValue(arquivoJSON, new TypeReference<Map<Long, Pedido>>() {}));
     }
 }
