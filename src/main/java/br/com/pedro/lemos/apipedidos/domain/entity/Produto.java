@@ -26,18 +26,8 @@ public class Produto {
         return idProduto;
     }
 
-    // REMOVA todos os métodos set() e deixe somente os que for usar.
-    // Penso que talvez só o método de atualizar quantidade seja necessário
-    public void setIdProduto(Long idProduto) {
-        this.idProduto = idProduto;
-    }
-
     public String getNomeProduto() {
         return nomeProduto;
-    }
-
-    public void setNomeProduto(String nomeProduto) {
-        this.nomeProduto = nomeProduto;
     }
 
     public int getQuantidadeProduto() {
@@ -52,7 +42,4 @@ public class Produto {
         return precoUnitarioProduto;
     }
 
-    public void setPrecoUnitarioProduto(Double precoUnitarioProduto) {
-        this.precoUnitarioProduto = precoUnitarioProduto;
-    }
 }
