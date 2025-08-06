@@ -2,7 +2,6 @@ package br.com.pedro.lemos.apipedidos.application.usecase.efetuarpedidousecase;
 
 import br.com.pedro.lemos.apipedidos.adapters.dataprovider.repository.PedidoRepository;
 import br.com.pedro.lemos.apipedidos.adapters.dataprovider.repository.ProdutoRepository;
-import br.com.pedro.lemos.apipedidos.application.exception.PedidoEmAndamentoException;
 import br.com.pedro.lemos.apipedidos.application.exception.ProdutoNaoDisponivelException;
 import br.com.pedro.lemos.apipedidos.application.exception.ProdutoNaoEncontradoException;
 import br.com.pedro.lemos.apipedidos.application.service.GeradorIdPedidoService;
@@ -51,39 +50,30 @@ public class EfetuarPedidoUseCaseImpl implements EfetuarPedidoUseCase {
                 throw new ProdutoNaoDisponivelException(produtoCadastrado.getNomeProduto());
             }
 
-            // Cria uma nova instância de Produto para o pedido com os dados corretos
             Produto produtoDoPedido = new Produto(
                     produtoCadastrado.getIdProduto(),
                     produtoCadastrado.getNomeProduto(),
-                    quantidadeDesejada, // Usa a quantidade desejada
+                    quantidadeDesejada,
                     produtoCadastrado.getPrecoUnitarioProduto()
             );
             produtosParaPedido.add(produtoDoPedido);
         }
 
-        // 2. Gera o ID do pedido e verifica se já existe um pedido ativo com o mesmo ID
         Long idPedido = geradorIdPedidoService.gerarId();
-        Pedido pedidoExistente = pedidoRepository.findByIdPedido(idPedido);
-        if (pedidoExistente != null && pedidoExistente.getStatusPedido().equals("ATIVO")) {
-            throw new PedidoEmAndamentoException(idPedido);
-        }
 
-        // 3. Cria o novo pedido
         String dataHoraAtual = LocalDateTime.now().format(DateUtils.FORMATTER_DATA_HORA_PT_BR);
         Pedido pedido = new Pedido(
                 idPedido,
                 solicitacaoEfetuarPedido.getCodigoIdentificacaoCliente(),
-                produtosParaPedido, // Usa a lista de produtos criada
+                produtosParaPedido,
                 dataHoraAtual,
                 solicitacaoEfetuarPedido.getTransactionId()
         );
 
-        // 4. Atualiza o estoque dos produtos
         for (Produto produto : produtosParaPedido) {
             produtoRepository.atualizarEstoque(produto.getIdProduto(), produto.getQuantidadeProduto());
         }
 
-        // 5. Salva o pedido
         pedidoRepository.salvar(pedido);
         return idPedido;
     }

@@ -2,7 +2,6 @@ package br.com.pedro.lemos.apipedidos.application.usecase.efetuarpedidousecase;
 
 import br.com.pedro.lemos.apipedidos.adapters.dataprovider.repository.PedidoRepository;
 import br.com.pedro.lemos.apipedidos.adapters.dataprovider.repository.ProdutoRepository;
-import br.com.pedro.lemos.apipedidos.application.exception.PedidoEmAndamentoException;
 import br.com.pedro.lemos.apipedidos.application.exception.ProdutoNaoDisponivelException;
 import br.com.pedro.lemos.apipedidos.application.exception.ProdutoNaoEncontradoException;
 import br.com.pedro.lemos.apipedidos.application.service.GeradorIdPedidoService;
@@ -15,7 +14,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -45,7 +43,6 @@ class EfetuarPedidoUseCaseImplTest {
 
         when(produtoRepository.findById(1L)).thenReturn(produtoDisponivel);
         when(geradorIdPedidoService.gerarId()).thenReturn(idPedidoGerado);
-        when(pedidoRepository.findByIdPedido(idPedidoGerado)).thenReturn(null);
 
         // When
         Long resultado = efetuarPedidoUseCase.efetuar(solicitacao);
@@ -57,24 +54,6 @@ class EfetuarPedidoUseCaseImplTest {
         verify(geradorIdPedidoService, times(1)).gerarId();
         // Verifica se o estoque foi atualizado com a quantidade desejada (2)
         verify(produtoRepository, times(1)).atualizarEstoque(1L, 2);
-    }
-
-    @Test
-    void deveLancarExcecaoQuandoPedidoJaEstaEmAndamento() {
-        // Given
-        SolicitacaoEfetuarPedido solicitacao = criarSolicitacaoEfetuarPedido();
-        Produto produtoDisponivel = criarProdutoEmEstoque(1L, 10);
-        Long idPedidoGerado = 12345L;
-        Pedido pedidoExistente = criarPedido();
-        pedidoExistente.setStatusPedido("ATIVO");
-
-        when(produtoRepository.findById(1L)).thenReturn(produtoDisponivel);
-        when(geradorIdPedidoService.gerarId()).thenReturn(idPedidoGerado);
-        when(pedidoRepository.findByIdPedido(idPedidoGerado)).thenReturn(pedidoExistente);
-
-        // When & Then
-        assertThrows(PedidoEmAndamentoException.class, () -> efetuarPedidoUseCase.efetuar(solicitacao));
-        verify(pedidoRepository, never()).salvar(any(Pedido.class));
     }
 
     @Test
@@ -117,10 +96,5 @@ class EfetuarPedidoUseCaseImplTest {
 
     private Produto criarProdutoEmEstoque(Long id, int quantidadeEmEstoque) {
         return new Produto(id, "Produto Teste", quantidadeEmEstoque, 10.00);
-    }
-
-    private Pedido criarPedido() {
-        Produto produtoDoPedido = new Produto(1L, "Produto Teste", 2, 10.00);
-        return new Pedido(12345L, "cliente-123", List.of(produtoDoPedido), "2023-10-01T10:00:00", "transacao-abc");
     }
 }

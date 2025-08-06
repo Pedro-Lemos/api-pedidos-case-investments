@@ -37,9 +37,9 @@ Para cancelar um pedido, é necessário:
 ### PedidoId
 
 O `pedidoId` é gerado automaticamente após a efetuação de um novo pedido.
-Ele sempre seguirá o padrão `ANO + MES + DIA + SEQUENCIAL`
+Ele sempre seguirá o padrão `DIA + MES + ANO + SEQUENCIAL`
 
-Exemplo: `2025080400001`
+Exemplo: `4082025000001`
 
 
 ## Como Executar o Projeto
