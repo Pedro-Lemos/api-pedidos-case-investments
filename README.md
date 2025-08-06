@@ -183,7 +183,7 @@ A API suporta paginação através dos seguintes parâmetros de consulta:
           "valorProduto": 25.0
         }
       ],
-      "dataHoraCriacaoPedido": "06/08/2025 14:30:00",
+      "dataHoraCriacaoPedido": "06-08-2025 14:30:00",
       "transactionId": "txn-123"
     }
   ],
